@@ -942,7 +942,43 @@
   <span class="sep">·</span>
   <span id="dataStamp" title="Last data refresh">—</span>
   <span class="sep">·</span>
+  <a href="#" id="aboutLink" style="color:var(--text-muted);text-decoration:none;">About</a>
+  <span class="sep">·</span>
   <a href="#" id="kbdHint" style="color:var(--text-muted);text-decoration:none;">Press <span style="font-family:var(--mono);background:rgba(255,255,255,0.04);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">?</span></a>
+</div>
+
+<div class="kbd-overlay" id="aboutOverlay">
+  <div class="card" style="max-width:540px;">
+    <h3>About FLOP Map</h3>
+    <div style="font-size:13px;line-height:1.65;color:var(--text);margin-bottom:16px;">
+      A public, interactive 3D map of every known AI compute cluster on earth —
+      all 691 sites tracked by <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>,
+      covering ≈55 GW of power and ≈79M H100-equivalent chips. Built to make the
+      infrastructure behind the AI boom visible.
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">How it works</div>
+    <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
+      Each dot is a cluster (points view), or rolled up by geography (heatmap / hex).
+      Click a dot for full specs: power, chips, FLOP/s, cost, sources. Filter by status,
+      operator, country, sector, or year. Pin up to 4 clusters to compare side-by-side.
+      Press <span style="font-family:var(--mono);background:rgba(255,255,255,0.04);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">?</span>
+      for keyboard shortcuts.
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Data & caveats</div>
+    <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
+      Data comes from Epoch AI under CC BY. 253 anonymised Chinese clusters share
+      one centroid (35.5N, 101.9E) — heatmap reads this correctly but the raw dot
+      count is misleading. Many planned sites lack power or FLOP/s estimates.
+      Not every cluster on earth is here; this is the best public dataset we have.
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Credits</div>
+    <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
+      Built by <a href="https://www.kitwebster.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Kit Webster</a>
+      with Globe.gl. Data by <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI</a> (CC BY).
+      Source on <a href="https://github.com/kitwebster-art/compute-atlas" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">GitHub</a>.
+    </div>
+    <div class="close-hint">Press Esc to close</div>
+  </div>
 </div>
 
 <div class="press-hint" id="pressHint">Press mode · Press H to exit</div>
@@ -1431,7 +1467,8 @@ window.addEventListener('unhandledrejection', (e) => {
       const panelOpen = document.getElementById('detailPanel')?.classList.contains('visible');
       const modalOpen = document.getElementById('compareModal')?.classList.contains('visible');
       const overlayOpen = document.getElementById('kbdOverlay')?.classList.contains('visible');
-      if (!panelOpen && !modalOpen && !overlayOpen) {
+      const aboutOpen = document.getElementById('aboutOverlay')?.classList.contains('visible');
+      if (!panelOpen && !modalOpen && !overlayOpen && !aboutOpen) {
         world.controls().autoRotate = true;
       }
     }, 45000);
@@ -2182,6 +2219,17 @@ window.addEventListener('unhandledrejection', (e) => {
     if (e.target === kbdOverlay) kbdOverlay.classList.remove('visible');
   });
 
+  // --- About modal ---
+  const aboutOverlay = document.getElementById('aboutOverlay');
+  const aboutLink = document.getElementById('aboutLink');
+  aboutLink?.addEventListener('click', e => {
+    e.preventDefault();
+    aboutOverlay.classList.add('visible');
+  });
+  aboutOverlay?.addEventListener('click', e => {
+    if (e.target === aboutOverlay) aboutOverlay.classList.remove('visible');
+  });
+
   const selectViewMode = (mode) => {
     const btn = document.querySelector(`#viewModeToggle button[data-view="${mode}"]`);
     if (btn) btn.click();
@@ -2210,6 +2258,10 @@ window.addEventListener('unhandledrejection', (e) => {
     if (e.key === 'Escape') {
       if (compareModal.classList.contains('visible')) {
         closeCompareModal();
+        return;
+      }
+      if (aboutOverlay?.classList.contains('visible')) {
+        aboutOverlay.classList.remove('visible');
         return;
       }
       if (kbdOverlay.classList.contains('visible')) {
