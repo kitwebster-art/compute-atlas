@@ -1547,9 +1547,16 @@ window.addEventListener('unhandledrejection', (e) => {
     const statsLineEl = document.getElementById('visibleStats');
     if (statsLineEl) {
       const parts = [];
-      if (totalMW) parts.push(`<strong>${totalMW >= 1000 ? (totalMW / 1000).toFixed(1) + ' GW' : fmtNum(totalMW) + ' MW'}</strong>`);
-      if (totalH100) parts.push(`<strong>${fmtNum(totalH100)}</strong> H100-eq`);
-      if (totalFlops) parts.push(`<strong>${fmtFlops(totalFlops)}</strong>`);
+      // Rough household equivalence: avg US home ~10.5 MWh/year, assume 40% capacity factor → 1 MW ≈ 3,350 household-years
+      const households = totalMW * 3350;
+      const hhLabel = households > 1e6
+        ? `${(households / 1e6).toFixed(1)}M households`
+        : households > 1000
+          ? `${(households / 1000).toFixed(0)}k households`
+          : `${Math.round(households)} households`;
+      if (totalMW) parts.push(`<strong title="≈ ${hhLabel} at avg US consumption">${totalMW >= 1000 ? (totalMW / 1000).toFixed(1) + ' GW' : fmtNum(totalMW) + ' MW'}</strong>`);
+      if (totalH100) parts.push(`<strong title="H100-equivalent chips — normalises across different GPU generations">${fmtNum(totalH100)}</strong> H100-eq`);
+      if (totalFlops) parts.push(`<strong title="Peak theoretical FLOP/s summed across all visible clusters">${fmtFlops(totalFlops)}</strong>`);
       statsLineEl.innerHTML = parts.join('<span class="sep">·</span>');
     }
     renderLeaderboard(filtered);
