@@ -233,4 +233,14 @@ currently-filtered set.
 
 ## Gamma decks
 
-(fetched URLs added here once generation completes)
+Two decks were sent for generation during this session. Open the URLs below — if generation is still in progress Gamma will show a progress bar; once done it redirects to the finished deck and you can edit / export from there.
+
+1. **FLOP Map — Strategic Overview & Roadmap**
+   https://gamma.app/generations/FsYLYchejSt9n2urJPBe3
+   Covers: product snapshot, monetisation (API, data subs, sponsored embeds, reports, acquisition), competitors, launch/growth plan, 90-day roadmap, budget, risks.
+
+2. **Kit Webster — Creative + Commercial Directions**
+   https://gamma.app/generations/4O59EISI6XjKF2yRqHTj7
+   Covers: three overlapping practices (studio / startup / commercial), five strategic plays, 12-month arc, metrics, cash model, three questions to answer.
+
+Both are 16:9 with AI-generated abstract imagery. Edit in Gamma to retheme, add your own screenshots, or export to PDF / PPT.
