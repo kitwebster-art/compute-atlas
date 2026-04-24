@@ -470,6 +470,34 @@
       background: var(--accent);
       box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
     }
+    .chip-section {
+      margin-top: 14px; padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .chip-section h4 {
+      font-size: 9px; color: var(--text-dim); font-weight: 600;
+      letter-spacing: 0.4em; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .chip-row {
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 8px; align-items: center;
+      padding: 4px 0; font-size: 11px;
+    }
+    .chip-row .name { color: var(--text); }
+    .chip-row .val {
+      font-family: var(--mono); color: var(--accent); font-size: 10px;
+    }
+    .chip-row .bar {
+      grid-column: 1 / -1;
+      height: 3px; background: rgba(255,255,255,0.05);
+      border-radius: 2px; overflow: hidden; margin-top: 2px;
+    }
+    .chip-row .bar > span {
+      display: block; height: 100%;
+      background: var(--accent);
+      opacity: 0.7;
+    }
 
     /* Timeline */
     .timeline {
@@ -819,6 +847,7 @@
 <aside class="leaderboard" id="leaderboard">
   <h3><span>Top operators</span><span class="unit" id="lbUnit">MW</span></h3>
   <div id="lbList"></div>
+  <div id="chipBreakdown" class="chip-section"></div>
 </aside>
 
 <aside class="detail-panel" id="detailPanel">
@@ -1450,6 +1479,60 @@ window.addEventListener('unhandledrejection', (e) => {
         applyFilters();
       });
     });
+
+    renderChipBreakdown(data);
+  }
+
+  function vendorOf(chip) {
+    const c = (chip || '').toLowerCase();
+    if (!c) return null;
+    if (c.includes('tpu')) return 'Google TPU';
+    if (c.includes('ascend') || c.includes('huawei')) return 'Huawei';
+    if (c.includes('mi300') || c.includes('mi250') || c.includes('mi325') || c.includes('mi355') || c.includes('amd')) return 'AMD';
+    if (c.includes('gaudi') || c.includes('intel')) return 'Intel';
+    if (c.includes('trainium') || c.includes('inferentia')) return 'AWS';
+    if (c.includes('maia')) return 'Microsoft';
+    if (c.includes('mtia')) return 'Meta';
+    if (c.includes('h100') || c.includes('h200') || c.includes('a100') || c.includes('v100') ||
+        c.includes('b100') || c.includes('b200') || c.includes('gb200') || c.includes('gb300') ||
+        c.includes('h800') || c.includes('h20') || c.includes('nvidia') || c.includes('rtx') ||
+        c.includes('a10') || c.includes('l40') || c.includes('t4')) return 'NVIDIA';
+    return 'Other';
+  }
+
+  function renderChipBreakdown(data) {
+    const el = document.getElementById('chipBreakdown');
+    if (!el) return;
+    const byVendor = new Map();
+    for (const r of data) {
+      const v = vendorOf(r.chipType);
+      if (!v) continue;
+      const w = weightFor(r);
+      if (w <= 0) continue;
+      const cur = byVendor.get(v) || { name: v, total: 0, count: 0 };
+      cur.total += w;
+      cur.count += 1;
+      byVendor.set(v, cur);
+      // Add secondary chip if present
+      const v2 = vendorOf(r.chipType2);
+      if (v2 && v2 !== v) {
+        const w2 = w * 0.25; // rough: secondary chip contributes partial weight
+        const cur2 = byVendor.get(v2) || { name: v2, total: 0, count: 0 };
+        cur2.total += w2;
+        byVendor.set(v2, cur2);
+      }
+    }
+    const rows = [...byVendor.values()].sort((a, b) => b.total - a.total);
+    if (rows.length === 0) { el.innerHTML = ''; return; }
+    const max = rows[0].total;
+    const unitLabel = sizeMode === 'power' ? 'MW' : 'H100-eq';
+    el.innerHTML = `<h4>By chip vendor · ${unitLabel}</h4>` + rows.map(v => `
+      <div class="chip-row" title="${v.count} cluster${v.count !== 1 ? 's' : ''}">
+        <div class="name">${v.name}</div>
+        <div class="val">${fmtNum(v.total)}</div>
+        <div class="bar"><span style="width:${(v.total / max * 100).toFixed(1)}%;"></span></div>
+      </div>
+    `).join('');
   }
 
   // Attach both 'change' and 'input' so selects and number inputs both trigger
