@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compute Atlas — Global AI Infrastructure</title>
+  <meta name="description" content="A 3D visualiser of the world's AI compute infrastructure. Open data from Epoch AI.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05070d;
+      --bg-panel: rgba(10, 14, 24, 0.92);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e8e8ec;
+      --text-dim: #8a8a98;
+      --text-muted: #4a4a58;
+      --accent: #d4af37;
+      --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: "Inter", -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    #globeContainer { position: fixed; inset: 0; cursor: grab; }
+    #globeContainer:active { cursor: grabbing; }
+
+    /* Masthead */
+    .masthead {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 22px 32px; z-index: 10;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      pointer-events: none;
+    }
+    .brand { pointer-events: auto; }
+    .brand .eyebrow {
+      font-size: 10px; font-weight: 600; color: var(--accent);
+      letter-spacing: 0.5em; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .brand h1 {
+      font-size: 28px; font-weight: 200; letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .brand .tagline {
+      font-size: 11px; color: var(--text-dim); margin-top: 6px;
+      letter-spacing: 0.1em;
+    }
+    .counter {
+      pointer-events: auto; text-align: right;
+      font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    .counter .big {
+      font-size: 22px; color: var(--text); font-weight: 500;
+      display: block; margin-bottom: 2px;
+    }
+
+    /* Filters */
+    .filters {
+      position: fixed; left: 32px; top: 120px; z-index: 10;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      width: 260px;
+      backdrop-filter: blur(12px);
+    }
+    .filters h3 {
+      font-size: 10px; color: var(--text-dim); font-weight: 600;
+      letter-spacing: 0.4em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .filter-row { margin-bottom: 10px; }
+    .filter-row label {
+      display: block; font-size: 10px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 4px;
+    }
+    .filter-row select, .filter-row input {
+      width: 100%; padding: 7px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); font-family: inherit; font-size: 12px;
+      outline: none; transition: border-color 0.15s;
+    }
+    .filter-row select:focus, .filter-row input:focus { border-color: var(--accent); }
+    .filter-row select option { background: #0a0e18; color: var(--text); }
+    .size-mode {
+      display: flex; gap: 4px; margin-top: 4px;
+    }
+    .size-mode button {
+      flex: 1; padding: 6px 8px; font-size: 10px;
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-dim); cursor: pointer;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .size-mode button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .size-mode button:hover:not(.active) { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* Detail panel */
+    .detail-panel {
+      position: fixed; right: 32px; top: 120px; bottom: 120px; width: 360px;
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px 22px; z-index: 10;
+      backdrop-filter: blur(12px);
+      overflow-y: auto; display: none;
+      transition: opacity 0.15s;
+    }
+    .detail-panel.visible { display: block; }
+    .detail-panel .close {
+      position: absolute; top: 12px; right: 16px;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 20px; cursor: pointer; line-height: 1;
+    }
+    .detail-panel .close:hover { color: var(--text); }
+    .detail-panel .status-pill {
+      display: inline-block; padding: 3px 10px;
+      font-size: 9px; font-weight: 600; letter-spacing: 0.25em;
+      text-transform: uppercase; border-radius: 20px; margin-bottom: 12px;
+    }
+    .status-operational { background: rgba(74, 209, 136, 0.15); color: #7dd8a3; }
+    .status-under-construction { background: rgba(212, 175, 55, 0.15); color: var(--accent); }
+    .status-planned { background: rgba(100, 149, 237, 0.18); color: #8ab4ff; }
+    .status-decommissioned { background: rgba(180, 180, 180, 0.15); color: #999; }
+    .detail-panel h2 {
+      font-size: 20px; font-weight: 500; letter-spacing: 0.01em;
+      margin-bottom: 4px; line-height: 1.2;
+    }
+    .detail-panel .owner {
+      font-size: 13px; color: var(--text-dim); margin-bottom: 20px;
+    }
+    .spec-row {
+      display: flex; justify-content: space-between;
+      padding: 10px 0; border-top: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .spec-row .label {
+      color: var(--text-dim); letter-spacing: 0.05em;
+      text-transform: uppercase; font-size: 10px; font-weight: 600;
+    }
+    .spec-row .value { color: var(--text); font-family: var(--mono); font-size: 12px; }
+    .detail-panel .note {
+      margin-top: 16px; padding: 12px;
+      background: rgba(255, 255, 255, 0.02); border-radius: 6px;
+      font-size: 11px; color: var(--text-dim); line-height: 1.5;
+    }
+    .detail-panel .sources {
+      margin-top: 16px; font-size: 10px;
+    }
+    .detail-panel .sources a {
+      display: block; color: var(--accent); text-decoration: none;
+      margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .detail-panel .sources a:hover { text-decoration: underline; }
+
+    /* Legend */
+    .legend {
+      position: fixed; left: 32px; bottom: 32px; z-index: 10;
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 18px; font-size: 11px;
+      backdrop-filter: blur(12px);
+    }
+    .legend h4 {
+      font-size: 9px; color: var(--text-dim); letter-spacing: 0.4em;
+      text-transform: uppercase; margin-bottom: 10px; font-weight: 600;
+    }
+    .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    /* Footer attribution */
+    .footer {
+      position: fixed; right: 32px; bottom: 32px; z-index: 10;
+      font-size: 10px; color: var(--text-muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .footer a { color: var(--text-dim); text-decoration: none; }
+    .footer a:hover { color: var(--accent); }
+
+    /* Loading */
+    .loader {
+      position: fixed; inset: 0; display: flex; justify-content: center; align-items: center;
+      background: var(--bg); z-index: 100;
+      flex-direction: column; gap: 16px;
+    }
+    .loader .spinner {
+      width: 32px; height: 32px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader .status {
+      font-size: 11px; color: var(--text-dim); letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 800px) {
+      .filters { left: 12px; top: 90px; width: calc(100% - 24px); }
+      .detail-panel { right: 12px; left: 12px; width: auto; top: auto; bottom: 12px; height: 45vh; }
+      .legend { display: none; }
+      .footer { right: 12px; bottom: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div class="status">Loading global compute data…</div>
+</div>
+
+<div id="globeContainer"></div>
+
+<header class="masthead">
+  <div class="brand">
+    <div class="eyebrow">Compute Atlas</div>
+    <h1>The World's AI Compute</h1>
+    <div class="tagline">A live 3D map of global AI infrastructure</div>
+  </div>
+  <div class="counter">
+    <span class="big" id="visibleCount">—</span>
+    <span>CLUSTERS SHOWN</span>
+  </div>
+</header>
+
+<aside class="filters">
+  <h3>Filter</h3>
+  <div class="filter-row">
+    <label>Status</label>
+    <select id="filterStatus">
+      <option value="all">All</option>
+      <option value="Existing">Operational</option>
+      <option value="Under construction">Under construction</option>
+      <option value="Planned">Planned</option>
+    </select>
+  </div>
+  <div class="filter-row">
+    <label>Operator</label>
+    <select id="filterOwner">
+      <option value="all">All</option>
+    </select>
+  </div>
+  <div class="filter-row">
+    <label>Country</label>
+    <select id="filterCountry">
+      <option value="all">All</option>
+    </select>
+  </div>
+  <div class="filter-row">
+    <label>Min power (MW)</label>
+    <input type="number" id="filterMinMW" min="0" value="0" step="10">
+  </div>
+  <div class="filter-row">
+    <label>View mode</label>
+    <div class="size-mode" id="viewModeToggle">
+      <button data-view="points" class="active">Points</button>
+      <button data-view="heatmap">Heatmap</button>
+      <button data-view="hex">Hex bins</button>
+    </div>
+  </div>
+  <div class="filter-row">
+    <label>Weight by</label>
+    <div class="size-mode" id="sizeModeToggle">
+      <button data-mode="power" class="active">Power (MW)</button>
+      <button data-mode="h100">H100-eq</button>
+    </div>
+  </div>
+</aside>
+
+<aside class="detail-panel" id="detailPanel">
+  <button class="close" id="detailClose">×</button>
+  <div id="detailContent"></div>
+</aside>
+
+<div class="legend">
+  <h4>Status</h4>
+  <div class="legend-item"><div class="legend-dot" style="background:#4ad188; color:#4ad188;"></div> Operational</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d4af37; color:#d4af37;"></div> Under construction</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#6495ed; color:#6495ed;"></div> Planned</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#888; color:#888;"></div> Decommissioned</div>
+</div>
+
+<div class="footer">
+  Data: <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener">Epoch AI · CC BY</a>
+</div>
+
+<script src="https://unpkg.com/globe.gl"></script>
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+window.addEventListener('error', (e) => {
+  const statusEl = document.querySelector('.loader .status');
+  if (statusEl) statusEl.textContent = 'ERROR: ' + (e.message || 'unknown') + ' — see console (Cmd+Option+I)';
+  console.error('[Compute Atlas]', e);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const statusEl = document.querySelector('.loader .status');
+  if (statusEl) statusEl.textContent = 'ERROR: ' + (e.reason?.message || e.reason || 'unknown');
+  console.error('[Compute Atlas] unhandled:', e.reason);
+});
+(async function () {
+  const loader = document.getElementById('loader');
+  const statusEl = document.querySelector('.loader .status');
+
+  const numeric = v => {
+    if (v === null || v === undefined || v === '') return null;
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  statusEl.textContent = 'Fetching compute data…';
+  const resp = await fetch('./gpu_clusters.csv');
+  const csvText = await resp.text();
+
+  statusEl.textContent = 'Parsing…';
+  const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true }).data;
+
+  const rows = parsed.map(r => {
+    const lat = numeric(r.latitude);
+    const lng = numeric(r.longitude);
+    if (lat === null || lng === null) return null;
+    const mw = numeric(r['Reported Power Capacity (MW)']) ?? numeric(r['Calculated Power Capacity (MW)']) ?? numeric(r['Power Capacity (MW)']);
+    const h100 = numeric(r['H100 equivalents']);
+    const flopsLog = numeric(r['Max OP/s (log)']);
+    const status = (r.Status || '').trim();
+    return {
+      name: r.Name,
+      owner: r.Owner || r['Users'] || 'Unknown',
+      country: r.Country,
+      location: r.Location,
+      status,
+      lat, lng,
+      mw,
+      h100,
+      flopsLog,
+      flops: flopsLog ? Math.pow(10, flopsLog) : null,
+      chipType: r['Chip type (primary)'],
+      chipQty: numeric(r['Chip quantity (primary)']),
+      firstOp: r['First Operational Date'],
+      note: r.Note,
+      quote: r.Quote,
+      sector: r.Sector,
+      sources: [r['Source 1'], r['Source 2'], r['Source 3']].filter(Boolean),
+    };
+  }).filter(Boolean);
+
+  console.log(`Loaded ${rows.length} compute clusters`);
+
+  // Populate filters
+  const ownerSel = document.getElementById('filterOwner');
+  const countrySel = document.getElementById('filterCountry');
+  const owners = [...new Set(rows.map(r => (r.owner || '').trim()).filter(Boolean))].sort();
+  const countries = [...new Set(rows.map(r => (r.country || '').trim()).filter(Boolean))].sort();
+  for (const o of owners) {
+    const opt = document.createElement('option'); opt.value = o; opt.textContent = o; ownerSel.appendChild(opt);
+  }
+  for (const c of countries) {
+    const opt = document.createElement('option'); opt.value = c; opt.textContent = c; countrySel.appendChild(opt);
+  }
+
+  // Status colouring
+  const statusColor = s => {
+    if (!s) return '#888';
+    const low = s.toLowerCase();
+    if (low.includes('existing') || low.includes('operational')) return '#4ad188';
+    if (low.includes('construction')) return '#d4af37';
+    if (low.includes('planned')) return '#6495ed';
+    if (low.includes('decommissioned')) return '#888';
+    return '#d4af37';
+  };
+
+  // Modes
+  let sizeMode = 'power';
+  let viewMode = 'points';
+  const weightFor = (r) => {
+    if (sizeMode === 'power') return r.mw || 0;
+    if (sizeMode === 'h100') return r.h100 || 0;
+    return r.mw || 0;
+  };
+  const sizeFor = (r) => {
+    const v = weightFor(r);
+    if (!v) return 0.4;
+    const logv = Math.log10(v + 1);
+    return Math.max(0.4, Math.min(4.0, logv * 0.5));
+  };
+
+  // Init globe — Globe.gl UMD build exposes window.Globe as factory
+  statusEl.textContent = 'Rendering globe…';
+  const container = document.getElementById('globeContainer');
+
+  if (typeof Globe !== 'function') {
+    throw new Error('Globe.gl library failed to load. Check your network connection.');
+  }
+
+  const world = window._world = Globe()(container)
+    .backgroundColor('#05070d')
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+    .atmosphereColor('#6495ed')
+    .atmosphereAltitude(0.22);
+
+  const pointTooltip = d => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:200px;">
+      <div style="font-size:13px;font-weight:500;margin-bottom:2px;">${escapeHtml(d.name)}</div>
+      <div style="font-size:11px;color:#8a8a98;margin-bottom:6px;">${escapeHtml(d.owner)} · ${escapeHtml(d.country || '—')}</div>
+      <div style="font-size:11px;color:${statusColor(d.status)};letter-spacing:0.2em;text-transform:uppercase;">${escapeHtml(d.status || 'Unknown')}</div>
+      ${d.mw ? `<div style="font-size:11px;color:#e8e8ec;margin-top:6px;font-family:JetBrains Mono,monospace;">${fmtNum(d.mw)} MW</div>` : ''}
+    </div>`;
+
+  function applyPointsView(data) {
+    world
+      .hexBinPointsData([])
+      .pointsData(data)
+      .pointAltitude(d => Math.max(0.04, sizeFor(d) * 0.08))
+      .pointRadius(d => Math.max(0.35, sizeFor(d) * 0.45))
+      .pointColor(d => statusColor(d.status))
+      .pointLabel(pointTooltip)
+      .onPointClick(showDetail);
+  }
+
+  function applyHeatmapView(data) {
+    world
+      .pointsData([])
+      .hexBinPointsData(data)
+      .hexBinPointWeight(d => weightFor(d) || 1)
+      .hexBinResolution(4)
+      .hexAltitude(({ sumWeight }) => {
+        if (!sumWeight) return 0.01;
+        return Math.min(0.6, Math.log10(sumWeight + 1) * 0.08);
+      })
+      .hexTopColor(({ sumWeight }) => heatColor(sumWeight))
+      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 0.55))
+      .hexLabel(({ points, sumWeight }) => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:160px;">
+        <div style="font-size:11px;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Cluster region</div>
+        <div style="font-size:12px;">${points.length} site${points.length === 1 ? '' : 's'}</div>
+        <div style="font-size:12px;font-family:JetBrains Mono,monospace;">${fmtNum(sumWeight)} ${sizeMode === 'power' ? 'MW' : 'H100-eq'}</div>
+      </div>`)
+      .onHexClick(hex => {
+        if (hex.points && hex.points.length > 0) {
+          showDetail(hex.points[0]);
+        }
+      });
+  }
+
+  function applyHexView(data) {
+    world
+      .pointsData([])
+      .hexBinPointsData(data)
+      .hexBinPointWeight(d => weightFor(d) || 1)
+      .hexBinResolution(3)
+      .hexAltitude(({ sumWeight }) => {
+        if (!sumWeight) return 0.01;
+        return Math.min(0.5, Math.log10(sumWeight + 1) * 0.06);
+      })
+      .hexTopColor(({ sumWeight }) => heatColor(sumWeight))
+      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 0.4))
+      .hexLabel(({ points, sumWeight }) => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:160px;">
+        <div style="font-size:11px;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Cluster region</div>
+        <div style="font-size:12px;">${points.length} site${points.length === 1 ? '' : 's'}</div>
+        <div style="font-size:12px;font-family:JetBrains Mono,monospace;">${fmtNum(sumWeight)} ${sizeMode === 'power' ? 'MW' : 'H100-eq'}</div>
+      </div>`)
+      .onHexClick(hex => {
+        if (hex.points && hex.points.length > 0) {
+          showDetail(hex.points[0]);
+        }
+      });
+  }
+
+  // Heat colour gradient: blue → cyan → yellow → orange → red
+  function heatColor(w, alphaMult = 1) {
+    if (!w) return `rgba(80, 120, 180, ${0.3 * alphaMult})`;
+    const logv = Math.log10(w + 1);
+    // Normalise to 0..1 across a plausible log range (0 to ~7 for 10M H100s or 10GW)
+    const t = Math.max(0, Math.min(1, logv / 6));
+    const stops = [
+      [0.00, [80, 100, 220]],
+      [0.25, [80, 200, 240]],
+      [0.50, [240, 210, 80]],
+      [0.75, [255, 140, 60]],
+      [1.00, [255, 60, 60]],
+    ];
+    let c1 = stops[0][1], c2 = stops[stops.length - 1][1], tm = 0, tx = 1;
+    for (let i = 0; i < stops.length - 1; i++) {
+      if (t >= stops[i][0] && t <= stops[i + 1][0]) {
+        c1 = stops[i][1]; c2 = stops[i + 1][1]; tm = stops[i][0]; tx = stops[i + 1][0];
+        break;
+      }
+    }
+    const localT = (tx === tm) ? 0 : (t - tm) / (tx - tm);
+    const r = Math.round(c1[0] + (c2[0] - c1[0]) * localT);
+    const g = Math.round(c1[1] + (c2[1] - c1[1]) * localT);
+    const b = Math.round(c1[2] + (c2[2] - c1[2]) * localT);
+    return `rgba(${r}, ${g}, ${b}, ${0.85 * alphaMult})`;
+  }
+
+  function renderView(data) {
+    if (viewMode === 'points') applyPointsView(data);
+    else if (viewMode === 'heatmap') applyHeatmapView(data);
+    else if (viewMode === 'hex') applyHexView(data);
+  }
+
+  // Start with a nice camera position (default is fine)
+  world.pointOfView({ lat: 20, lng: 20, altitude: 2.3 }, 0);
+
+  // Auto-rotate until user interacts
+  world.controls().autoRotate = true;
+  world.controls().autoRotateSpeed = 0.35;
+  container.addEventListener('mousedown', () => { world.controls().autoRotate = false; }, { once: true });
+  container.addEventListener('touchstart', () => { world.controls().autoRotate = false; }, { once: true });
+
+  // Filter + apply
+  function applyFilters() {
+    const status = document.getElementById('filterStatus').value;
+    const owner = (document.getElementById('filterOwner').value || '').trim();
+    const country = (document.getElementById('filterCountry').value || '').trim();
+    const minMW = numeric(document.getElementById('filterMinMW').value) || 0;
+
+    const filtered = rows.filter(r => {
+      if (status !== 'all') {
+        const rs = (r.status || '').toLowerCase();
+        const fs = status.toLowerCase();
+        if (!rs.includes(fs)) return false;
+      }
+      if (owner !== 'all' && (r.owner || '').trim() !== owner) return false;
+      if (country !== 'all' && (r.country || '').trim() !== country) return false;
+      if (minMW > 0 && (r.mw || 0) < minMW) return false;
+      return true;
+    });
+
+    window._filtered = filtered;
+    renderView(filtered);
+    document.getElementById('visibleCount').textContent = filtered.length.toLocaleString();
+    console.log('[Compute Atlas] filter applied:', { status, owner, country, minMW, shown: filtered.length, view: viewMode });
+  }
+
+  // Attach both 'change' and 'input' so selects and number inputs both trigger
+  ['filterStatus', 'filterOwner', 'filterCountry', 'filterMinMW'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('change', applyFilters);
+    el.addEventListener('input', applyFilters);
+  });
+
+  // View mode buttons (Points / Heatmap / Hex)
+  document.querySelectorAll('#viewModeToggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#viewModeToggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      viewMode = btn.dataset.view;
+      renderView(window._filtered || rows);
+      console.log('[Compute Atlas] view mode:', viewMode);
+    });
+  });
+
+  // Size/weight mode buttons
+  document.querySelectorAll('#sizeModeToggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#sizeModeToggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sizeMode = btn.dataset.mode;
+      renderView(window._filtered || rows);
+      console.log('[Compute Atlas] weight mode:', sizeMode);
+    });
+  });
+
+  // Detail panel
+  const panel = document.getElementById('detailPanel');
+  const panelContent = document.getElementById('detailContent');
+  document.getElementById('detailClose').addEventListener('click', () => panel.classList.remove('visible'));
+
+  window._showDetail = showDetail;
+  function showDetail(d) {
+    const statusClass = (d.status || '').toLowerCase().includes('existing') || (d.status || '').toLowerCase().includes('operational')
+      ? 'status-operational'
+      : (d.status || '').toLowerCase().includes('construction')
+        ? 'status-under-construction'
+        : (d.status || '').toLowerCase().includes('planned')
+          ? 'status-planned'
+          : 'status-decommissioned';
+
+    panelContent.innerHTML = `
+      <span class="status-pill ${statusClass}">${escapeHtml(d.status || 'Unknown')}</span>
+      <h2>${escapeHtml(d.name || 'Unnamed cluster')}</h2>
+      <div class="owner">${escapeHtml(d.owner || 'Unknown operator')}</div>
+
+      ${d.location ? `<div class="spec-row"><span class="label">Location</span><span class="value">${escapeHtml(d.location)}</span></div>` : ''}
+      ${d.country ? `<div class="spec-row"><span class="label">Country</span><span class="value">${escapeHtml(d.country)}</span></div>` : ''}
+      ${d.mw ? `<div class="spec-row"><span class="label">Power capacity</span><span class="value">${fmtNum(d.mw)} MW</span></div>` : ''}
+      ${d.h100 ? `<div class="spec-row"><span class="label">H100 equivalents</span><span class="value">${fmtNum(d.h100)}</span></div>` : ''}
+      ${d.flops ? `<div class="spec-row"><span class="label">Peak FLOPS</span><span class="value">${fmtFlops(d.flops)}</span></div>` : ''}
+      ${d.chipType ? `<div class="spec-row"><span class="label">Primary chip</span><span class="value">${escapeHtml(d.chipType)}${d.chipQty ? ` · ${fmtNum(d.chipQty)}` : ''}</span></div>` : ''}
+      ${d.sector ? `<div class="spec-row"><span class="label">Sector</span><span class="value">${escapeHtml(d.sector)}</span></div>` : ''}
+      ${d.firstOp ? `<div class="spec-row"><span class="label">First operational</span><span class="value">${escapeHtml(d.firstOp)}</span></div>` : ''}
+      ${d.note ? `<div class="note">${escapeHtml(d.note)}</div>` : ''}
+      ${d.quote ? `<div class="note" style="font-style:italic;">${escapeHtml(d.quote.substring(0, 300))}${d.quote.length > 300 ? '…' : ''}</div>` : ''}
+      ${d.sources.length ? `<div class="sources">
+        <div style="color:var(--text-dim);text-transform:uppercase;letter-spacing:0.2em;font-weight:600;margin-bottom:6px;">Sources</div>
+        ${d.sources.map(s => `<a href="${escapeHtml(s)}" target="_blank" rel="noopener">${escapeHtml(truncUrl(s))}</a>`).join('')}
+      </div>` : ''}
+    `;
+    panel.classList.add('visible');
+
+    // Zoom to cluster
+    world.pointOfView({ lat: d.lat, lng: d.lng, altitude: 1.2 }, 800);
+  }
+
+  function escapeHtml(s) {
+    if (s === undefined || s === null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function fmtNum(n) {
+    if (!n) return '—';
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'k';
+    return n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  }
+
+  function fmtFlops(n) {
+    if (!n) return '—';
+    if (n >= 1e21) return (n / 1e21).toFixed(1) + ' ZFLOP/s';
+    if (n >= 1e18) return (n / 1e18).toFixed(1) + ' EFLOP/s';
+    if (n >= 1e15) return (n / 1e15).toFixed(1) + ' PFLOP/s';
+    if (n >= 1e12) return (n / 1e12).toFixed(1) + ' TFLOP/s';
+    if (n >= 1e9) return (n / 1e9).toFixed(1) + ' GFLOP/s';
+    return n.toExponential(1) + ' FLOP/s';
+  }
+
+  function truncUrl(s) {
+    try {
+      const u = new URL(s);
+      return u.hostname + (u.pathname.length > 1 ? u.pathname.substring(0, 30) + '…' : '');
+    } catch { return s.substring(0, 50); }
+  }
+
+  // Initial render
+  applyFilters();
+
+  // Hide loader
+  setTimeout(() => loader.style.display = 'none', 200);
+})();
+</script>
+</body>
+</html>
