@@ -493,6 +493,116 @@
       text-transform: uppercase;
     }
 
+    /* Compare pinboard */
+    .pin-btn {
+      display: inline-block; margin-top: 8px;
+      background: transparent; border: 1px solid var(--accent);
+      color: var(--accent); font-size: 10px;
+      padding: 6px 12px; border-radius: 4px; cursor: pointer;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      font-family: inherit; font-weight: 600;
+      transition: background 0.15s, color 0.15s;
+    }
+    .pin-btn:hover { background: var(--accent); color: #0a0a0f; }
+    .pin-btn.pinned { background: var(--accent); color: #0a0a0f; }
+    .pin-btn.pinned:hover { background: transparent; color: var(--accent); }
+
+    .compare-tray {
+      position: fixed; left: 32px; bottom: 32px; z-index: 11;
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      backdrop-filter: blur(12px);
+      display: none; align-items: center; gap: 12px;
+      max-width: calc(100vw - 64px);
+    }
+    .compare-tray.visible { display: flex; }
+    .compare-tray .tray-label {
+      font-size: 9px; color: var(--text-dim); font-weight: 600;
+      letter-spacing: 0.4em; text-transform: uppercase;
+    }
+    .compare-tray .pin-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(212, 175, 55, 0.1); border: 1px solid var(--accent);
+      color: var(--text); font-size: 11px;
+      padding: 4px 10px; border-radius: 20px; max-width: 200px;
+    }
+    .compare-tray .pin-chip .name {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .compare-tray .pin-chip .x {
+      cursor: pointer; color: var(--text-muted); font-size: 14px;
+      line-height: 1; padding: 0 2px;
+    }
+    .compare-tray .pin-chip .x:hover { color: var(--accent); }
+    .compare-tray .tray-actions { display: flex; gap: 6px; margin-left: 6px; }
+    .compare-tray .tray-actions button {
+      background: transparent; border: 1px solid var(--accent);
+      color: var(--accent); font-size: 10px; font-weight: 600;
+      padding: 6px 12px; border-radius: 4px; cursor: pointer;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      font-family: inherit;
+    }
+    .compare-tray .tray-actions button:hover { background: var(--accent); color: #0a0a0f; }
+    .compare-tray .tray-actions button.secondary { border-color: var(--border); color: var(--text-muted); }
+    .compare-tray .tray-actions button.secondary:hover { border-color: var(--text); color: var(--text); background: transparent; }
+
+    /* Compare modal */
+    .compare-modal {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(5, 7, 13, 0.85); backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center;
+      padding: 40px;
+    }
+    .compare-modal.visible { display: flex; }
+    .compare-modal .box {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; position: relative;
+      max-width: 1100px; width: 100%; max-height: 90vh; overflow-y: auto;
+    }
+    .compare-modal .box h2 {
+      font-size: 16px; font-weight: 500; letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+    .compare-modal .box .sub {
+      font-size: 11px; color: var(--text-dim); margin-bottom: 20px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+    }
+    .compare-modal .close {
+      position: absolute; top: 14px; right: 20px;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 24px; cursor: pointer; line-height: 1;
+    }
+    .compare-modal .close:hover { color: var(--text); }
+    .compare-table {
+      width: 100%; border-collapse: collapse; font-size: 12px;
+    }
+    .compare-table th, .compare-table td {
+      padding: 10px 12px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .compare-table th {
+      font-size: 9px; color: var(--text-dim); font-weight: 600;
+      letter-spacing: 0.25em; text-transform: uppercase;
+      width: 160px; white-space: nowrap;
+    }
+    .compare-table td { font-family: var(--mono); font-size: 12px; }
+    .compare-table td.best { color: var(--accent); font-weight: 600; }
+    .compare-table .cluster-header {
+      font-family: var(--sans); font-size: 13px; font-weight: 500;
+      letter-spacing: 0; text-transform: none;
+      color: var(--text); padding-bottom: 16px;
+    }
+    .compare-table .cluster-header .op {
+      display: block; font-size: 10px; color: var(--text-dim);
+      font-weight: 400; margin-top: 2px;
+    }
+    .compare-table .cluster-header .sp {
+      display: inline-block; margin-top: 6px;
+      font-size: 9px; padding: 2px 8px; border-radius: 10px;
+      letter-spacing: 0.25em; text-transform: uppercase;
+    }
+
     @media (max-width: 800px) {
       .filters { left: 12px; top: 90px; width: calc(100% - 24px); }
       .detail-panel { right: 12px; left: 12px; width: auto; top: auto; bottom: 12px; height: 45vh; }
@@ -500,6 +610,10 @@
       .leaderboard { display: none; }
       .timeline { width: calc(100% - 24px); left: 12px; transform: none; bottom: 80px; }
       .footer { right: 12px; bottom: 12px; }
+      .compare-tray { left: 12px; right: 12px; bottom: 12px; max-width: none; flex-wrap: wrap; }
+      .compare-modal { padding: 12px; }
+      .compare-modal .box { padding: 18px; }
+      .compare-table th { width: auto; }
     }
   </style>
 </head>
@@ -598,6 +712,24 @@
   <div id="detailContent"></div>
 </aside>
 
+<div class="compare-tray" id="compareTray">
+  <span class="tray-label">Compare</span>
+  <div id="pinList" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+  <div class="tray-actions">
+    <button id="btnCompareOpen">Open</button>
+    <button id="btnCompareClear" class="secondary">Clear</button>
+  </div>
+</div>
+
+<div class="compare-modal" id="compareModal" role="dialog" aria-modal="true">
+  <div class="box">
+    <button class="close" id="compareClose" aria-label="Close">×</button>
+    <h2>Side-by-side comparison</h2>
+    <div class="sub">Best value per metric highlighted in gold</div>
+    <div id="compareBody"></div>
+  </div>
+</div>
+
 <div class="timeline" id="timeline">
   <button class="play-btn" id="playBtn" aria-label="Play timeline">▶</button>
   <div class="slider-wrap">
@@ -639,6 +771,8 @@
     <div class="row"><span>Close detail panel</span><div class="keys"><span>Esc</span></div></div>
     <div class="row"><span>Reset globe view</span><div class="keys"><span>R</span></div></div>
     <div class="row"><span>Surprise me</span><div class="keys"><span>S</span></div></div>
+    <div class="row"><span>Pin open cluster</span><div class="keys"><span>P</span></div></div>
+    <div class="row"><span>Open comparison</span><div class="keys"><span>C</span></div></div>
     <div class="row"><span>This help</span><div class="keys"><span>?</span></div></div>
     <div class="close-hint">Press Esc or ? to close</div>
   </div>
@@ -1281,8 +1415,9 @@ window.addEventListener('unhandledrejection', (e) => {
         ${d.sources.map(s => `<a href="${escapeHtml(s)}" target="_blank" rel="noopener">${escapeHtml(truncUrl(s))}</a>`).join('')}
       </div>` : ''}
 
-      <div class="section" style="padding-top:10px;">
-        <a class="link-btn" href="#" data-share="1">Copy shareable link</a>
+      <div class="section" style="padding-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+        <button class="pin-btn ${pinnedClusters.has(d.name) ? 'pinned' : ''}" data-pin="${escapeHtml(d.name || '')}">${pinnedClusters.has(d.name) ? '✓ Pinned' : '★ Pin to compare'}</button>
+        <a class="link-btn" href="#" data-share="1" style="margin:0;">Copy shareable link</a>
       </div>
     `;
 
@@ -1312,11 +1447,174 @@ window.addEventListener('unhandledrejection', (e) => {
       });
     }
 
+    // Wire up pin button
+    const pinBtn = panelContent.querySelector('[data-pin]');
+    if (pinBtn) {
+      pinBtn.addEventListener('click', () => {
+        togglePin(d.name);
+        const isPinned = pinnedClusters.has(d.name);
+        pinBtn.classList.toggle('pinned', isPinned);
+        pinBtn.textContent = isPinned ? '✓ Pinned' : '★ Pin to compare';
+      });
+    }
+
     panel.classList.add('visible');
     leaderboardEl.classList.add('hidden');
 
     // Zoom to cluster
     world.pointOfView({ lat: d.lat, lng: d.lng, altitude: 1.2 }, 800);
+  }
+
+  // ——— Compare pinboard ———
+  const pinnedClusters = new Set();
+  const PIN_MAX = 4;
+  const compareTrayEl = document.getElementById('compareTray');
+  const pinListEl = document.getElementById('pinList');
+  const compareModal = document.getElementById('compareModal');
+  const compareBody = document.getElementById('compareBody');
+
+  function togglePin(name) {
+    if (!name) return;
+    if (pinnedClusters.has(name)) {
+      pinnedClusters.delete(name);
+    } else {
+      if (pinnedClusters.size >= PIN_MAX) {
+        // Drop oldest
+        const first = pinnedClusters.values().next().value;
+        pinnedClusters.delete(first);
+      }
+      pinnedClusters.add(name);
+    }
+    renderCompareTray();
+  }
+
+  function renderCompareTray() {
+    if (pinnedClusters.size === 0) {
+      compareTrayEl.classList.remove('visible');
+      return;
+    }
+    compareTrayEl.classList.add('visible');
+    pinListEl.innerHTML = '';
+    pinnedClusters.forEach(name => {
+      const chip = document.createElement('span');
+      chip.className = 'pin-chip';
+      chip.innerHTML = `<span class="name" title="${escapeHtml(name)}">${escapeHtml(name)}</span><span class="x" role="button" aria-label="Unpin">×</span>`;
+      chip.querySelector('.name').addEventListener('click', () => {
+        const row = rows.find(r => r.name === name);
+        if (row) showDetail(row);
+      });
+      chip.querySelector('.x').addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePin(name);
+      });
+      pinListEl.appendChild(chip);
+    });
+  }
+
+  document.getElementById('btnCompareClear').addEventListener('click', () => {
+    pinnedClusters.clear();
+    renderCompareTray();
+    // Refresh detail panel if open
+    if (panel.classList.contains('visible')) {
+      const btn = panelContent.querySelector('[data-pin]');
+      if (btn) { btn.classList.remove('pinned'); btn.textContent = '★ Pin to compare'; }
+    }
+  });
+
+  document.getElementById('btnCompareOpen').addEventListener('click', openCompareModal);
+
+  document.getElementById('compareClose').addEventListener('click', closeCompareModal);
+  compareModal.addEventListener('click', (e) => {
+    if (e.target === compareModal) closeCompareModal();
+  });
+
+  function closeCompareModal() {
+    compareModal.classList.remove('visible');
+  }
+
+  function openCompareModal() {
+    if (pinnedClusters.size < 1) return;
+    const clusters = [...pinnedClusters]
+      .map(n => rows.find(r => r.name === n))
+      .filter(Boolean);
+    if (!clusters.length) return;
+
+    // Metrics to compare. [label, accessor, fmt, bestIs]
+    // bestIs: 'max' = higher is better (Power, H100, FLOPs), 'min' = lower is better (Cost per MW),
+    //         null = no winner (Country, Status)
+    const metrics = [
+      ['Status', r => r.status || '—', s => escapeHtml(s), null, 'string'],
+      ['Country', r => r.country || '—', s => escapeHtml(s), null, 'string'],
+      ['Operator', r => r.owner || '—', s => escapeHtml(s), null, 'string'],
+      ['Sector', r => r.sector || '—', s => escapeHtml(s), null, 'string'],
+      ['Power (MW)', r => r.mw ?? null, v => v == null ? '—' : fmtNum(v) + ' MW', 'max', 'num'],
+      ['H100 equiv.', r => r.h100 ?? null, v => v == null ? '—' : fmtNum(v), 'max', 'num'],
+      ['Peak FLOP/s', r => r.flops ?? null, v => v == null ? '—' : fmtFlops(v), 'max', 'num'],
+      ['Total chips', r => r.totalChips ?? null, v => v == null ? '—' : fmtNum(v), 'max', 'num'],
+      ['Energy eff.', r => r.energyEfficiency ?? null, v => v == null ? '—' : fmtFlops(v) + '/W', 'max', 'num'],
+      ['Annual MWh', r => r.mw ? r.mw * 8760 : null, v => v == null ? '—' : fmtNum(v) + ' MWh', null, 'num'],
+      ['CO₂ / yr (t)', r => r.mw ? Math.round(r.mw * 8760 * 1000 * 0.45 / 1000) : null, v => v == null ? '—' : fmtNum(v) + ' t', 'min', 'num'],
+      ['Cost (best)', r => r.reportedCostInfl ?? r.reportedCost ?? r.calcCost ?? r.hardwareCost ?? null, v => v == null ? '—' : fmtMoney(v), null, 'num'],
+      ['Cost / MW', r => {
+        const c = r.reportedCostInfl ?? r.reportedCost ?? r.calcCost ?? r.hardwareCost;
+        return (c && r.mw) ? c / r.mw : null;
+      }, v => v == null ? '—' : fmtMoney(v), 'min', 'num'],
+      ['First operational', r => r.firstOp || '—', s => escapeHtml(s), null, 'string'],
+      ['Chip type', r => {
+        const a = r.chipType && (r.chipType + (r.chipQty ? ` × ${fmtNum(r.chipQty)}` : ''));
+        const b = r.chipType2 && (r.chipType2 + (r.chipQty2 ? ` × ${fmtNum(r.chipQty2)}` : ''));
+        return [a, b].filter(Boolean).join(' + ') || '—';
+      }, s => escapeHtml(s), null, 'string'],
+    ];
+
+    // Compute best index per metric
+    const bestIndex = metrics.map(([, acc, , bestIs, kind]) => {
+      if (!bestIs || kind !== 'num') return -1;
+      const vals = clusters.map(c => acc(c));
+      const nonNull = vals.map((v, i) => [v, i]).filter(([v]) => v != null);
+      if (nonNull.length < 2) return -1;
+      const sorted = [...nonNull].sort((a, b) => bestIs === 'max' ? b[0] - a[0] : a[0] - b[0]);
+      return sorted[0][1];
+    });
+
+    // Cluster header row
+    const statusPill = (c) => {
+      const s = (c.status || '').toLowerCase();
+      const cls = s.includes('existing') || s.includes('operational') ? 'status-operational'
+        : s.includes('construction') ? 'status-under-construction'
+        : s.includes('planned') ? 'status-planned' : 'status-decommissioned';
+      return `<span class="sp ${cls}">${escapeHtml(c.status || 'Unknown')}</span>`;
+    };
+
+    const headerHtml = `<tr>
+      <th></th>
+      ${clusters.map(c => `<td class="cluster-header">
+        <strong>${escapeHtml(c.name || 'Unnamed')}</strong>
+        <span class="op">${escapeHtml(c.owner || 'Unknown operator')}</span>
+        ${statusPill(c)}
+      </td>`).join('')}
+    </tr>`;
+
+    const rowsHtml = metrics.map(([label, acc, fmt], i) => {
+      const winner = bestIndex[i];
+      return `<tr>
+        <th>${label}</th>
+        ${clusters.map((c, j) => {
+          const v = acc(c);
+          const cell = fmt(v);
+          const best = winner === j ? ' class="best"' : '';
+          return `<td${best}>${cell}</td>`;
+        }).join('')}
+      </tr>`;
+    }).join('');
+
+    compareBody.innerHTML = `
+      <table class="compare-table">
+        <thead>${headerHtml}</thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+    compareModal.classList.add('visible');
   }
 
   // Pretty-print cost. Epoch's cost values are in USD already.
@@ -1500,8 +1798,12 @@ window.addEventListener('unhandledrejection', (e) => {
       return;
     }
 
-    // Esc closes things in priority order: overlay, search, detail panel
+    // Esc closes things in priority order: compare modal, overlay, search, detail panel
     if (e.key === 'Escape') {
+      if (compareModal.classList.contains('visible')) {
+        closeCompareModal();
+        return;
+      }
       if (kbdOverlay.classList.contains('visible')) {
         kbdOverlay.classList.remove('visible');
         return;
@@ -1536,6 +1838,17 @@ window.addEventListener('unhandledrejection', (e) => {
       if (pool.length) {
         const pick = pool[Math.floor(Math.random() * pool.length)];
         showDetail(pick);
+      }
+    }
+    else if (e.key === 'c' || e.key === 'C') {
+      e.preventDefault();
+      if (pinnedClusters.size > 0) openCompareModal();
+    }
+    else if (e.key === 'p' || e.key === 'P') {
+      // Pin currently-open cluster
+      if (panel.classList.contains('visible')) {
+        const btn = panelContent.querySelector('[data-pin]');
+        if (btn) { e.preventDefault(); btn.click(); }
       }
     }
   });
