@@ -40,6 +40,78 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `5b5ca52` · Visible-set totals under the counter
+
+The top-right counter used to say just "691 CLUSTERS SHOWN". Now
+there's a gold totals line under it: **55.2 GW · 79.45M H100-eq ·
+157.2 ZFLOP/s** (those are the full-world numbers). Filter to a
+region, operator, or year and the numbers re-sum live.
+
+**Revert:** `git revert 5b5ca52`
+
+---
+
+### `8be37aa` · Richer hover tooltip
+
+Hover tooltip used to show name, owner, status, MW. Now it also
+shows H100-eq, peak FLOP/s, primary chip blend (e.g. "NVIDIA H100 ×
+25.0k"), and first-operational year inline with the status pill.
+Adds a subtle "Click for details" hint.
+
+**Revert:** `git revert 8be37aa`
+
+---
+
+### `d37dd3f` · Top-5 concentration stat card
+
+Gold card at the top of the operator leaderboard showing what
+percentage of visible compute the top 5 operators control, with a
+small progress bar. Updates with every filter — filter to Europe to
+see how much more concentrated that market is vs the US.
+
+Global default: Top 5 ≈ 57.7% of visible power.
+
+**Revert:** `git revert d37dd3f`
+
+---
+
+### `a2012d0` · Press mode (H key)
+
+Hit `H` to hide every piece of chrome — masthead, filters, legend,
+leaderboard, timeline, detail panel, compare tray. Only the globe +
+a small "PRESS MODE · PRESS H TO EXIT" pill remains. Perfect for
+social posts and journalist screenshots. Hit `H` again to restore.
+
+**Revert:** `git revert a2012d0`
+
+---
+
+### `d9d8fac` · Clickable legend
+
+The status legend in the bottom-left is now a filter shortcut.
+Click "Operational" to show only operational clusters; click again
+to go back to all. Other rows mute when a filter is active. Stays
+in sync with the status dropdown in the filter sidebar (change one,
+the other updates).
+
+Also bumped the compare tray to sit above the legend instead of
+overlapping it.
+
+**Revert:** `git revert d9d8fac`
+
+---
+
+### `86c2f3e` · Region quick-zoom presets
+
+Six pill buttons under the search bar: **Americas · Europe · MENA ·
+East Asia · SEA · Oceania · World**. Clicking one flies the camera
+to preset lat/lng/altitude so visitors can drop straight onto the
+region they care about.
+
+**Revert:** `git revert 86c2f3e`
+
+---
+
 ### `704212e` · Annual MW-added sparkline above timeline slider
 
 Little bar chart above the year slider showing commissioning pace by
