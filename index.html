@@ -180,9 +180,11 @@
       font-size: 10px; color: var(--text-muted);
       letter-spacing: 0.15em;
       text-transform: uppercase;
+      display: flex; gap: 10px; align-items: center;
     }
-    .footer a { color: var(--text-dim); text-decoration: none; }
+    .footer a { color: var(--text-dim); text-decoration: none; transition: color 0.15s; }
     .footer a:hover { color: var(--accent); }
+    .footer .sep { color: var(--text-muted); }
 
     /* Loading */
     .loader {
@@ -288,7 +290,9 @@
 </div>
 
 <div class="footer">
-  Data: <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener">Epoch AI · CC BY</a>
+  <span>Made by <a href="https://www.kitwebster.com" target="_blank" rel="noopener">Kit Webster</a></span>
+  <span class="sep">·</span>
+  <span>Data: <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener">Epoch AI · CC BY</a></span>
 </div>
 
 <script src="https://unpkg.com/globe.gl"></script>
