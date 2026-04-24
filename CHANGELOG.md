@@ -40,6 +40,28 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `9f5a8fc` · Mobile polish
+
+Tightened the mobile layout (<800px viewport):
+
+- Compact masthead (smaller heading, tagline hidden)
+- Compact counter (hide stats-line, smaller fonts)
+- Slide-in filter panel: floating gold "Filters" pill at bottom-left
+  toggles the panel open; max-height 50vh with internal scroll
+- Region presets wrap onto two rows for small screens
+- Footer shrinks and wraps to the right-hand side so it doesn't collide
+  with the Filters button
+- Timeline and detail panel sized for small screens
+- Legend + leaderboard hidden on mobile (press `F` for fullscreen to
+  reclaim chrome space)
+
+Now usable on a phone — previously the sidebar panels overlapped the
+globe and filters were hard to reach.
+
+**Revert:** `git revert 9f5a8fc`
+
+---
+
 ### `c2e0ee3` · Top Countries breakdown + scrollable sidebar
 
 Added a second breakdown panel below "By chip vendor" that lists the top 6
