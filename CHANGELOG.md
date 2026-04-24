@@ -40,6 +40,47 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `a2e24fe` · Chip-vendor breakdown card
+
+New panel under the Top Operators list in the right-hand sidebar. Groups
+every visible cluster by chip vendor (NVIDIA, AMD, Google TPU, Huawei,
+Intel, AWS, Microsoft, Meta, Other) and shows a gold bar per vendor sized
+to its share of the current filtered total. Re-sums live as filters change.
+
+Global default: NVIDIA dominates at ~15k MW vs everyone else combined
+under ~700 MW — the scale of their moat, visualised in one glance.
+
+**Revert:** `git revert a2e24fe`
+
+---
+
+### `07a65c1` · Fullscreen toggle (F key)
+
+Press `F` to enter/exit true browser fullscreen. Combine with `H` (press
+mode) for a zero-chrome, edge-to-edge globe — perfect for kiosks,
+presentations, or recording clean screen captures. `F` added to the help
+overlay (`?`).
+
+**Revert:** `git revert 07a65c1`
+
+---
+
+### `2f8537e` · Contextual legend (colour ramp for heatmap / hex views)
+
+The bottom-left legend used to always show the Status dot list — meaningless
+when you were in Heatmap or Hex-bin view. Now it's contextual:
+
+- **Points view:** status list (as before, still clickable to filter)
+- **Heatmap view:** "POWER DENSITY" (or "H100-EQ DENSITY") colour ramp with
+  Sparse → Hotspot labels
+- **Hex-bin view:** same ramp with Sparse → Tall-stack labels
+
+Weight-mode change (Power ↔ H100-eq) relabels the ramp live.
+
+**Revert:** `git revert 2f8537e`
+
+---
+
 ### `dc89ffe` · Data-freshness stamp in footer
 
 Footer now reads "Made by Kit Webster · Data: Epoch AI · CC BY · refreshed
