@@ -40,6 +40,23 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `e5807a5` · Tooltips on the totals line
+
+Hover the top-right totals (e.g. "55.2 GW · 79.45M H100-eq · 157.2 ZFLOP/s")
+to see glossary tips:
+
+- Power shows "≈ 184M households at avg US consumption" — turns the abstract
+  gigawatts into a tangible comparison
+- H100-eq explains the normalisation across GPU generations
+- FLOP/s explains "peak theoretical, summed"
+
+Makes the stats legible to non-specialists without dedicating real estate
+to an explanation.
+
+**Revert:** `git revert e5807a5`
+
+---
+
 ### `b189f2c` · Embed mode (`?embed=1`) + iframe snippet
 
 Add `?embed=1` to the URL to hide the masthead, filter sidebar,
