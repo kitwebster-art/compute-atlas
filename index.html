@@ -157,6 +157,22 @@
       padding: 16px; text-align: center;
       font-size: 11px; color: var(--text-muted);
     }
+    .region-strip {
+      display: flex; gap: 6px; justify-content: center;
+      margin-top: 8px; flex-wrap: wrap;
+    }
+    .region-strip button {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 10px;
+      padding: 5px 11px; border-radius: 14px; cursor: pointer;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      font-family: inherit; backdrop-filter: blur(12px);
+      transition: all 0.15s;
+    }
+    .region-strip button:hover {
+      color: var(--accent); border-color: var(--accent);
+      background: rgba(212, 175, 55, 0.06);
+    }
     @media (max-width: 720px) {
       .search-wrap { top: 12px; width: calc(100vw - 24px); }
     }
@@ -658,6 +674,14 @@
     <span class="kbd">/</span>
   </div>
   <div class="search-results" id="searchResults"></div>
+  <div class="region-strip" id="regionStrip">
+    <button data-region="us" title="Zoom to North America">Americas</button>
+    <button data-region="eu" title="Zoom to Europe">Europe</button>
+    <button data-region="mena" title="Zoom to Middle East &amp; North Africa">MENA</button>
+    <button data-region="china" title="Zoom to East Asia">East Asia</button>
+    <button data-region="sea" title="Zoom to SE Asia &amp; Oceania">SEA · Oceania</button>
+    <button data-region="world" title="Reset to globe view">World</button>
+  </div>
 </div>
 
 <aside class="filters">
@@ -1918,6 +1942,25 @@ window.addEventListener('unhandledrejection', (e) => {
         if (btn) { e.preventDefault(); btn.click(); }
       }
     }
+  });
+
+  // --- Region quick-zoom presets ---
+  const regionPresets = {
+    us:    { lat: 40,  lng: -100, altitude: 1.4 },
+    eu:    { lat: 50,  lng:   10, altitude: 1.7 },
+    mena:  { lat: 28,  lng:   40, altitude: 1.5 },
+    china: { lat: 35,  lng:  110, altitude: 1.5 },
+    sea:   { lat: -10, lng:  130, altitude: 1.5 },
+    world: { lat: 20,  lng:   20, altitude: 2.3 },
+  };
+  document.querySelectorAll('#regionStrip button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.region;
+      const p = regionPresets[key];
+      if (!p) return;
+      world.pointOfView(p, 900);
+      if (world.controls) world.controls().autoRotate = false;
+    });
   });
 
   // --- URL state sync ---
