@@ -413,7 +413,11 @@
       border-radius: 10px; padding: 16px 18px;
       backdrop-filter: blur(12px);
       transition: opacity 0.15s;
+      max-height: calc(100vh - 220px);
+      overflow-y: auto;
     }
+    .leaderboard::-webkit-scrollbar { width: 6px; }
+    .leaderboard::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
     .leaderboard.hidden { opacity: 0; pointer-events: none; }
     .leaderboard h3 {
       font-size: 10px; color: var(--text-dim); font-weight: 600;
@@ -498,6 +502,9 @@
       background: var(--accent);
       opacity: 0.7;
     }
+    .chip-row-clickable { cursor: pointer; padding: 4px 4px; margin: 0 -4px; border-radius: 3px; transition: background 0.1s; }
+    .chip-row-clickable:hover { background: rgba(212, 175, 55, 0.06); }
+    .chip-row-clickable.active { background: rgba(212, 175, 55, 0.1); }
 
     /* Timeline */
     .timeline {
@@ -848,6 +855,7 @@
   <h3><span>Top operators</span><span class="unit" id="lbUnit">MW</span></h3>
   <div id="lbList"></div>
   <div id="chipBreakdown" class="chip-section"></div>
+  <div id="countryBreakdown" class="chip-section"></div>
 </aside>
 
 <aside class="detail-panel" id="detailPanel">
@@ -1490,6 +1498,43 @@ window.addEventListener('unhandledrejection', (e) => {
     });
 
     renderChipBreakdown(data);
+    renderCountryBreakdown(data);
+  }
+
+  function renderCountryBreakdown(data) {
+    const el = document.getElementById('countryBreakdown');
+    if (!el) return;
+    const byCountry = new Map();
+    for (const r of data) {
+      const c = (r.country || '').trim();
+      if (!c || /^unknown$/i.test(c)) continue;
+      const w = weightFor(r);
+      if (w <= 0) continue;
+      const cur = byCountry.get(c) || { name: c, total: 0, count: 0 };
+      cur.total += w;
+      cur.count += 1;
+      byCountry.set(c, cur);
+    }
+    const rows = [...byCountry.values()].sort((a, b) => b.total - a.total).slice(0, 6);
+    if (rows.length === 0) { el.innerHTML = ''; return; }
+    const max = rows[0].total;
+    const unitLabel = sizeMode === 'power' ? 'MW' : 'H100-eq';
+    const activeCountry = document.getElementById('filterCountry')?.value || 'all';
+    el.innerHTML = `<h4>Top countries · ${unitLabel}</h4>` + rows.map(v => `
+      <div class="chip-row chip-row-clickable ${activeCountry === v.name ? 'active' : ''}" data-country="${escapeHtml(v.name)}" title="Click to filter by ${escapeHtml(v.name)} (${v.count} cluster${v.count !== 1 ? 's' : ''})">
+        <div class="name">${escapeHtml(v.name)}</div>
+        <div class="val">${fmtNum(v.total)}</div>
+        <div class="bar"><span style="width:${(v.total / max * 100).toFixed(1)}%;"></span></div>
+      </div>
+    `).join('');
+    el.querySelectorAll('.chip-row-clickable').forEach(r => {
+      r.addEventListener('click', () => {
+        const sel = document.getElementById('filterCountry');
+        const name = r.dataset.country;
+        sel.value = sel.value === name ? 'all' : name;
+        applyFilters();
+      });
+    });
   }
 
   function vendorOf(chip) {
