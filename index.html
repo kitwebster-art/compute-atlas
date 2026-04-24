@@ -990,6 +990,20 @@ window.addEventListener('unhandledrejection', (e) => {
     if (viewMode === 'points') applyPointsView(data);
     else if (viewMode === 'heatmap') applyHeatmapView(data);
     else if (viewMode === 'hex') applyHexView(data);
+    updateMegaRings(data);
+  }
+
+  // Pulsing rings on mega-clusters (>=1 GW). Purely visual emphasis.
+  function updateMegaRings(data) {
+    const mega = data.filter(r => (r.mw || 0) >= 1000);
+    world
+      .ringsData(mega)
+      .ringLat(d => d.lat)
+      .ringLng(d => d.lng)
+      .ringColor(() => (t) => `rgba(212, 175, 55, ${0.8 - t * 0.8})`)
+      .ringMaxRadius(d => Math.min(4, 1 + Math.sqrt((d.mw || 1000) / 1000) * 1.5))
+      .ringPropagationSpeed(1.2)
+      .ringRepeatPeriod(1800);
   }
 
   // Start with a nice camera position (default is fine)
