@@ -890,6 +890,7 @@
     <div class="row"><span>Pin open cluster</span><div class="keys"><span>P</span></div></div>
     <div class="row"><span>Open comparison</span><div class="keys"><span>C</span></div></div>
     <div class="row"><span>Press mode (hide UI)</span><div class="keys"><span>H</span></div></div>
+    <div class="row"><span>Fullscreen</span><div class="keys"><span>F</span></div></div>
     <div class="row"><span>This help</span><div class="keys"><span>?</span></div></div>
     <div class="close-hint">Press Esc or ? to close</div>
   </div>
@@ -2090,7 +2091,24 @@ window.addEventListener('unhandledrejection', (e) => {
       e.preventDefault();
       document.body.classList.toggle('press-mode');
     }
+    else if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      toggleFullscreen();
+    }
   });
+
+  function toggleFullscreen() {
+    const d = document;
+    const el = d.documentElement;
+    const isFs = d.fullscreenElement || d.webkitFullscreenElement;
+    if (!isFs) {
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req) req.call(el).catch(() => {});
+    } else {
+      const exit = d.exitFullscreen || d.webkitExitFullscreen;
+      if (exit) exit.call(d).catch(() => {});
+    }
+  }
 
   // --- Region quick-zoom presets ---
   const regionPresets = {
