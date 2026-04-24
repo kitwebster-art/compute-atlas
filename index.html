@@ -173,6 +173,31 @@
       color: var(--accent); border-color: var(--accent);
       background: rgba(212, 175, 55, 0.06);
     }
+
+    /* Press mode — hide all chrome for clean screenshots */
+    body.press-mode .masthead,
+    body.press-mode .search-wrap,
+    body.press-mode .filters,
+    body.press-mode .leaderboard,
+    body.press-mode .detail-panel,
+    body.press-mode .timeline,
+    body.press-mode .legend,
+    body.press-mode .footer,
+    body.press-mode .compare-tray {
+      display: none !important;
+    }
+    body.press-mode .press-hint {
+      display: block;
+    }
+    .press-hint {
+      display: none; position: fixed; top: 12px; left: 50%;
+      transform: translateX(-50%); z-index: 200;
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--text-muted); background: rgba(5,7,13,0.7);
+      padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
     @media (max-width: 720px) {
       .search-wrap { top: 12px; width: calc(100vw - 24px); }
     }
@@ -809,6 +834,8 @@
   <a href="#" id="kbdHint" style="color:var(--text-muted);text-decoration:none;">Press <span style="font-family:var(--mono);background:rgba(255,255,255,0.04);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">?</span></a>
 </div>
 
+<div class="press-hint" id="pressHint">Press mode · Press H to exit</div>
+
 <div class="kbd-overlay" id="kbdOverlay">
   <div class="card">
     <h3>Keyboard shortcuts</h3>
@@ -821,6 +848,7 @@
     <div class="row"><span>Surprise me</span><div class="keys"><span>S</span></div></div>
     <div class="row"><span>Pin open cluster</span><div class="keys"><span>P</span></div></div>
     <div class="row"><span>Open comparison</span><div class="keys"><span>C</span></div></div>
+    <div class="row"><span>Press mode (hide UI)</span><div class="keys"><span>H</span></div></div>
     <div class="row"><span>This help</span><div class="keys"><span>?</span></div></div>
     <div class="close-hint">Press Esc or ? to close</div>
   </div>
@@ -1950,6 +1978,10 @@ window.addEventListener('unhandledrejection', (e) => {
         const btn = panelContent.querySelector('[data-pin]');
         if (btn) { e.preventDefault(); btn.click(); }
       }
+    }
+    else if (e.key === 'h' || e.key === 'H') {
+      e.preventDefault();
+      document.body.classList.toggle('press-mode');
     }
   });
 
