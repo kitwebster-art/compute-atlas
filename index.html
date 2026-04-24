@@ -574,18 +574,51 @@ window.addEventListener('unhandledrejection', (e) => {
       .onPointClick(showDetail);
   }
 
-  function applyHeatmapView(data) {
+  // Compute a scale reference for hex bar heights at a given spatial
+  // resolution. We pre-bin the data with a lat/lng grid roughly matching
+  // globe.gl's h3 cell size, then use the 85th percentile bin sum as the
+  // "full-height" reference — this keeps one mega-bin from flattening
+  // every other bar, while still letting bar height correlate with MW.
+  function binScaleRef(data, gridDeg) {
+    const grid = new Map();
+    for (const r of data) {
+      const key = Math.floor(r.lat / gridDeg) + ',' + Math.floor(r.lng / gridDeg);
+      grid.set(key, (grid.get(key) || 0) + (weightFor(r) || 0));
+    }
+    const sums = [...grid.values()].filter(w => w > 0).sort((a, b) => a - b);
+    if (!sums.length) return 1;
+    const p85 = sums[Math.floor(sums.length * 0.85)] || sums[sums.length - 1];
+    return Math.max(p85, 1);
+  }
+
+  // Filter out owner-less rows from hex views so the anonymised Chinese
+  // cluster stack (253 rows at one centroid, all blank-owner) doesn't
+  // create a single artificial mega-bar that flattens every other bar.
+  function hexData(data) {
+    return data.filter(r => {
+      const o = (r.owner || '').trim();
+      return o && !/^unknown$/i.test(o);
+    });
+  }
+
+  function applyHeatmapView(rawData) {
+    const data = hexData(rawData);
+    const ref = binScaleRef(data, 3);
+    // Mild compression (power 0.7) keeps bar height visually proportional
+    // to MW while preventing the largest bins from crushing smaller ones
+    const altFor = w => {
+      if (!w) return 0.002;
+      const t = Math.pow(w / ref, 0.7);
+      return Math.max(0.01, Math.min(0.85, t * 0.7));
+    };
     world
       .pointsData([])
       .hexBinPointsData(data)
       .hexBinPointWeight(d => weightFor(d) || 1)
       .hexBinResolution(4)
-      .hexAltitude(({ sumWeight }) => {
-        if (!sumWeight) return 0.01;
-        return Math.min(0.6, Math.log10(sumWeight + 1) * 0.08);
-      })
-      .hexTopColor(({ sumWeight }) => heatColor(sumWeight))
-      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 0.55))
+      .hexAltitude(({ sumWeight }) => altFor(sumWeight))
+      .hexTopColor(({ sumWeight }) => heatColor(sumWeight, 1, ref))
+      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 0.55, ref))
       .hexLabel(({ points, sumWeight }) => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:160px;">
         <div style="font-size:11px;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Cluster region</div>
         <div style="font-size:12px;">${points.length} site${points.length === 1 ? '' : 's'}</div>
@@ -598,18 +631,22 @@ window.addEventListener('unhandledrejection', (e) => {
       });
   }
 
-  function applyHexView(data) {
+  function applyHexView(rawData) {
+    const data = hexData(rawData);
+    const ref = binScaleRef(data, 6);
+    const altFor = w => {
+      if (!w) return 0.002;
+      const t = Math.pow(w / ref, 0.7);
+      return Math.max(0.01, Math.min(0.8, t * 0.65));
+    };
     world
       .pointsData([])
       .hexBinPointsData(data)
       .hexBinPointWeight(d => weightFor(d) || 1)
       .hexBinResolution(3)
-      .hexAltitude(({ sumWeight }) => {
-        if (!sumWeight) return 0.01;
-        return Math.min(0.5, Math.log10(sumWeight + 1) * 0.06);
-      })
-      .hexTopColor(({ sumWeight }) => heatColor(sumWeight))
-      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 0.4))
+      .hexAltitude(({ sumWeight }) => altFor(sumWeight))
+      .hexTopColor(({ sumWeight }) => heatColor(sumWeight, 1, ref))
+      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 0.4, ref))
       .hexLabel(({ points, sumWeight }) => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:160px;">
         <div style="font-size:11px;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Cluster region</div>
         <div style="font-size:12px;">${points.length} site${points.length === 1 ? '' : 's'}</div>
@@ -623,11 +660,16 @@ window.addEventListener('unhandledrejection', (e) => {
   }
 
   // Heat colour gradient: blue → cyan → yellow → orange → red
-  function heatColor(w, alphaMult = 1) {
+  function heatColor(w, alphaMult = 1, maxRef = null) {
     if (!w) return `rgba(80, 120, 180, ${0.3 * alphaMult})`;
-    const logv = Math.log10(w + 1);
-    // Normalise to 0..1 across a plausible log range (0 to ~7 for 10M H100s or 10GW)
-    const t = Math.max(0, Math.min(1, logv / 6));
+    // Use linear scale vs. a real reference max when available so colour
+    // correlates with bar height; fall back to log scale when no ref given.
+    let t;
+    if (maxRef && maxRef > 0) {
+      t = Math.max(0, Math.min(1, w / maxRef));
+    } else {
+      t = Math.max(0, Math.min(1, Math.log10(w + 1) / 6));
+    }
     const stops = [
       [0.00, [80, 100, 220]],
       [0.25, [80, 200, 240]],
