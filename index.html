@@ -487,10 +487,19 @@
       font-size: 9px; color: var(--text-dim); letter-spacing: 0.4em;
       text-transform: uppercase; margin-bottom: 10px; font-weight: 600;
     }
-    .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .legend-item {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+      cursor: pointer; color: var(--text); padding: 3px 6px;
+      border-radius: 4px; margin-left: -6px;
+      transition: background 0.1s, opacity 0.1s;
+      user-select: none;
+    }
+    .legend-item:hover { background: rgba(212, 175, 55, 0.06); }
+    .legend-item.muted { opacity: 0.3; }
     .legend-dot {
       width: 10px; height: 10px; border-radius: 50%;
       box-shadow: 0 0 6px currentColor;
+      flex-shrink: 0;
     }
 
     /* Footer attribution */
@@ -537,12 +546,12 @@
     .pin-btn.pinned:hover { background: transparent; color: var(--accent); }
 
     .compare-tray {
-      position: fixed; left: 32px; bottom: 32px; z-index: 11;
+      position: fixed; left: 32px; bottom: 160px; z-index: 11;
       background: var(--bg-panel); border: 1px solid var(--border);
       border-radius: 10px; padding: 12px 16px;
       backdrop-filter: blur(12px);
       display: none; align-items: center; gap: 12px;
-      max-width: calc(100vw - 64px);
+      max-width: calc(100vw - 440px);
     }
     .compare-tray.visible { display: flex; }
     .compare-tray .tray-label {
@@ -786,10 +795,10 @@
 
 <div class="legend">
   <h4>Status</h4>
-  <div class="legend-item"><div class="legend-dot" style="background:#4ad188; color:#4ad188;"></div> Operational</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#d4af37; color:#d4af37;"></div> Under construction</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#6495ed; color:#6495ed;"></div> Planned</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#888; color:#888;"></div> Decommissioned</div>
+  <div class="legend-item" data-status="Existing" title="Click to show only operational"><div class="legend-dot" style="background:#4ad188; color:#4ad188;"></div> Operational</div>
+  <div class="legend-item" data-status="Under construction" title="Click to show only under-construction"><div class="legend-dot" style="background:#d4af37; color:#d4af37;"></div> Under construction</div>
+  <div class="legend-item" data-status="Planned" title="Click to show only planned"><div class="legend-dot" style="background:#6495ed; color:#6495ed;"></div> Planned</div>
+  <div class="legend-item" data-status="Decommissioned" title="Click to show only decommissioned"><div class="legend-dot" style="background:#888; color:#888;"></div> Decommissioned</div>
 </div>
 
 <div class="footer">
@@ -2088,6 +2097,28 @@ window.addEventListener('unhandledrejection', (e) => {
 
   // Initial render
   applyFilters();
+
+  // --- Clickable legend: toggles status filter ---
+  const statusSel = document.getElementById('filterStatus');
+  function syncLegendHighlight() {
+    const cur = statusSel.value;
+    document.querySelectorAll('.legend-item[data-status]').forEach(el => {
+      const s = el.dataset.status;
+      // If filter is "all", no muting; otherwise non-matching items muted
+      el.classList.toggle('muted', cur !== 'all' && s !== cur);
+    });
+  }
+  document.querySelectorAll('.legend-item[data-status]').forEach(el => {
+    el.addEventListener('click', () => {
+      const s = el.dataset.status;
+      // Toggle: if already selected, go back to all
+      statusSel.value = statusSel.value === s ? 'all' : s;
+      statusSel.dispatchEvent(new Event('change', { bubbles: true }));
+      syncLegendHighlight();
+    });
+  });
+  statusSel.addEventListener('change', syncLegendHighlight);
+  syncLegendHighlight();
 
   // Deep-link: open a specific cluster from #cluster=Name on page load
   const hashMatch = location.hash.match(/cluster=([^&]+)/);
