@@ -40,6 +40,30 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `dc89ffe` · Data-freshness stamp in footer
+
+Footer now reads "Made by Kit Webster · Data: Epoch AI · CC BY · refreshed
+Apr 2026 · Press ?". The "refreshed …" pill is pulled from the CSV file's
+`Last-Modified` HTTP header on load, with a tooltip showing the exact date.
+Tells visitors how current the numbers are without you needing to hand-edit.
+
+**Revert:** `git revert dc89ffe`
+
+---
+
+### `f583997` · Share-this-view button + auto-rotate resume
+
+Two small niceties:
+- **Share this view** button in the filter sidebar copies the current URL
+  (with all filters baked in via URL state) to the clipboard. One-tap share.
+- The globe's auto-rotate used to stop forever on first interaction. Now it
+  resumes after 45s of idle time, as long as no panel / modal / overlay is
+  open — so a kiosk or idle browser tab goes back to gently spinning.
+
+**Revert:** `git revert f583997`
+
+---
+
 ### `5b5ca52` · Visible-set totals under the counter
 
 The top-right counter used to say just "691 CLUSTERS SHOWN". Now
