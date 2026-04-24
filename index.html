@@ -556,6 +556,17 @@
       box-shadow: 0 0 6px currentColor;
       flex-shrink: 0;
     }
+    .legend-ramp {
+      width: 130px; height: 8px; border-radius: 4px;
+      background: linear-gradient(90deg, #1a1422 0%, #5a1d5a 25%, #c43f3f 55%, #ffa94d 80%, #ffe8a3 100%);
+      box-shadow: 0 0 10px rgba(255, 168, 77, 0.25);
+      margin: 8px 0 4px;
+    }
+    .legend-ramp-labels {
+      display: flex; justify-content: space-between;
+      font-size: 9px; color: var(--text-dim);
+      letter-spacing: 0.15em; text-transform: uppercase;
+    }
 
     /* Footer attribution */
     .footer {
@@ -850,12 +861,8 @@
   </div>
 </div>
 
-<div class="legend">
-  <h4>Status</h4>
-  <div class="legend-item" data-status="Existing" title="Click to show only operational"><div class="legend-dot" style="background:#4ad188; color:#4ad188;"></div> Operational</div>
-  <div class="legend-item" data-status="Under construction" title="Click to show only under-construction"><div class="legend-dot" style="background:#d4af37; color:#d4af37;"></div> Under construction</div>
-  <div class="legend-item" data-status="Planned" title="Click to show only planned"><div class="legend-dot" style="background:#6495ed; color:#6495ed;"></div> Planned</div>
-  <div class="legend-item" data-status="Decommissioned" title="Click to show only decommissioned"><div class="legend-dot" style="background:#888; color:#888;"></div> Decommissioned</div>
+<div class="legend" id="legend">
+  <!-- content injected by renderLegend() -->
 </div>
 
 <div class="footer">
@@ -2240,26 +2247,53 @@ window.addEventListener('unhandledrejection', (e) => {
   // Initial render
   applyFilters();
 
-  // --- Clickable legend: toggles status filter ---
+  // --- Contextual legend: rebuilt whenever viewMode / filter changes ---
   const statusSel = document.getElementById('filterStatus');
+  const legendEl = document.getElementById('legend');
+
+  function renderLegend() {
+    if (viewMode === 'points') {
+      legendEl.innerHTML = `
+        <h4>Status</h4>
+        <div class="legend-item" data-status="Existing" title="Click to show only operational"><div class="legend-dot" style="background:#4ad188; color:#4ad188;"></div> Operational</div>
+        <div class="legend-item" data-status="Under construction" title="Click to show only under-construction"><div class="legend-dot" style="background:#d4af37; color:#d4af37;"></div> Under construction</div>
+        <div class="legend-item" data-status="Planned" title="Click to show only planned"><div class="legend-dot" style="background:#6495ed; color:#6495ed;"></div> Planned</div>
+        <div class="legend-item" data-status="Decommissioned" title="Click to show only decommissioned"><div class="legend-dot" style="background:#888; color:#888;"></div> Decommissioned</div>
+      `;
+      document.querySelectorAll('.legend-item[data-status]').forEach(el => {
+        el.addEventListener('click', () => {
+          const s = el.dataset.status;
+          statusSel.value = statusSel.value === s ? 'all' : s;
+          statusSel.dispatchEvent(new Event('change', { bubbles: true }));
+          syncLegendHighlight();
+        });
+      });
+      syncLegendHighlight();
+    } else {
+      const label = sizeMode === 'h100' ? 'H100-eq density' : 'Power density';
+      const hi = viewMode === 'heatmap' ? 'Hotspot' : 'Tall stack';
+      legendEl.innerHTML = `
+        <h4>${label}</h4>
+        <div class="legend-ramp"></div>
+        <div class="legend-ramp-labels"><span>Sparse</span><span>${hi}</span></div>
+      `;
+    }
+  }
+
   function syncLegendHighlight() {
     const cur = statusSel.value;
     document.querySelectorAll('.legend-item[data-status]').forEach(el => {
       const s = el.dataset.status;
-      // If filter is "all", no muting; otherwise non-matching items muted
       el.classList.toggle('muted', cur !== 'all' && s !== cur);
     });
   }
-  document.querySelectorAll('.legend-item[data-status]').forEach(el => {
-    el.addEventListener('click', () => {
-      const s = el.dataset.status;
-      // Toggle: if already selected, go back to all
-      statusSel.value = statusSel.value === s ? 'all' : s;
-      statusSel.dispatchEvent(new Event('change', { bubbles: true }));
-      syncLegendHighlight();
-    });
-  });
   statusSel.addEventListener('change', syncLegendHighlight);
+
+  // Re-render legend when view or weight changes
+  document.querySelectorAll('#viewModeToggle button, #sizeModeToggle button').forEach(b => {
+    b.addEventListener('click', renderLegend);
+  });
+  renderLegend();
   syncLegendHighlight();
 
   // Deep-link: open a specific cluster from #cluster=Name on page load
