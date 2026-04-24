@@ -40,6 +40,31 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `c2e0ee3` · Top Countries breakdown + scrollable sidebar
+
+Added a second breakdown panel below "By chip vendor" that lists the top 6
+countries by MW (or H100-eq) in the currently filtered set. Each country
+row is clickable — tap to filter the entire map to that country, tap again
+to clear. United States dominates at ~31 GW, UAE second at ~6.4 GW,
+Brazil 4.8 GW, Korea 3.1 GW.
+
+Also made the right-hand sidebar scroll internally when content exceeds
+viewport height (which happens with the three new panels stacked).
+
+**Revert:** `git revert c2e0ee3`
+
+---
+
+### `34c7281` · Year-over-year delta in timeline caption
+
+The sparkline caption now shows YoY growth: when you scrub to 2024, it
+reads "2024: 1.20 GW added · +176% vs 2023". Quick way to see the
+exponential commissioning-pace story without opening a spreadsheet.
+
+**Revert:** `git revert 34c7281`
+
+---
+
 ### `a2e24fe` · Chip-vendor breakdown card
 
 New panel under the Top Operators list in the right-hand sidebar. Groups
