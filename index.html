@@ -440,6 +440,27 @@
     .lb-row .count {
       font-family: var(--mono); font-size: 9px; color: var(--text-muted);
     }
+    .lb-concentration {
+      margin: 2px 0 10px; padding: 8px 10px;
+      background: rgba(212, 175, 55, 0.06);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 6px;
+      font-size: 10px; color: var(--text-dim); line-height: 1.5;
+    }
+    .lb-concentration .hdr {
+      color: var(--text); font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .lb-concentration .bar {
+      display: block; height: 3px; margin-top: 5px;
+      background: rgba(255,255,255,0.06); border-radius: 2px;
+      overflow: hidden;
+    }
+    .lb-concentration .bar > span {
+      display: block; height: 100%;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+    }
 
     /* Timeline */
     .timeline {
@@ -1320,13 +1341,25 @@ window.addEventListener('unhandledrejection', (e) => {
       cur.count += 1;
       byOwner.set(name, cur);
     }
-    const sorted = [...byOwner.values()]
+    const allOps = [...byOwner.values()]
       .filter(o => o.total > 0)
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 10);
+      .sort((a, b) => b.total - a.total);
+    const sorted = allOps.slice(0, 10);
+
+    // Concentration stats
+    const totalAll = allOps.reduce((s, o) => s + o.total, 0);
+    const top5Total = allOps.slice(0, 5).reduce((s, o) => s + o.total, 0);
+    const top5Pct = totalAll > 0 ? (top5Total / totalAll * 100) : 0;
+    const concentrationHtml = allOps.length >= 2 ? `
+      <div class="lb-concentration">
+        <span class="hdr">Top 5 ≈ ${top5Pct.toFixed(1)}% of ${unitLabel === 'MW' ? 'visible power' : 'visible H100-eq'}</span>
+        <span class="bar"><span style="width:${Math.min(100, top5Pct).toFixed(1)}%;"></span></span>
+        <span style="display:block;margin-top:4px;">${allOps.length} operators shown</span>
+      </div>
+    ` : '';
 
     const activeOwner = (document.getElementById('filterOwner').value || 'all');
-    lb.innerHTML = sorted.map((o, i) => `
+    lb.innerHTML = concentrationHtml + sorted.map((o, i) => `
       <div class="lb-row ${activeOwner === o.name ? 'active' : ''}" data-owner="${escapeHtml(o.name)}">
         <div class="rank">${i + 1}</div>
         <div class="name" title="${escapeHtml(o.name)}">${escapeHtml(o.name)} <span class="count">· ${o.count}</span></div>
