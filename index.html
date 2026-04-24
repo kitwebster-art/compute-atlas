@@ -557,6 +557,12 @@
     </select>
   </div>
   <div class="filter-row">
+    <label>Sector</label>
+    <select id="filterSector">
+      <option value="all">All</option>
+    </select>
+  </div>
+  <div class="filter-row">
     <label>Min power (MW)</label>
     <input type="number" id="filterMinMW" min="0" value="0" step="10">
   </div>
@@ -767,13 +773,18 @@ window.addEventListener('unhandledrejection', (e) => {
   // Populate filters
   const ownerSel = document.getElementById('filterOwner');
   const countrySel = document.getElementById('filterCountry');
+  const sectorSel = document.getElementById('filterSector');
   const owners = [...new Set(rows.map(r => (r.owner || '').trim()).filter(Boolean))].sort();
   const countries = [...new Set(rows.map(r => (r.country || '').trim()).filter(Boolean))].sort();
+  const sectors = [...new Set(rows.map(r => (r.sector || '').trim()).filter(Boolean))].sort();
   for (const o of owners) {
     const opt = document.createElement('option'); opt.value = o; opt.textContent = o; ownerSel.appendChild(opt);
   }
   for (const c of countries) {
     const opt = document.createElement('option'); opt.value = c; opt.textContent = c; countrySel.appendChild(opt);
+  }
+  for (const s of sectors) {
+    const opt = document.createElement('option'); opt.value = s; opt.textContent = s; sectorSel.appendChild(opt);
   }
 
   // Status colouring
@@ -995,6 +1006,7 @@ window.addEventListener('unhandledrejection', (e) => {
     const status = document.getElementById('filterStatus').value;
     const owner = (document.getElementById('filterOwner').value || '').trim();
     const country = (document.getElementById('filterCountry').value || '').trim();
+    const sector = (document.getElementById('filterSector').value || '').trim();
     const minMW = numeric(document.getElementById('filterMinMW').value) || 0;
 
     const filtered = rows.filter(r => {
@@ -1005,6 +1017,7 @@ window.addEventListener('unhandledrejection', (e) => {
       }
       if (owner !== 'all' && (r.owner || '').trim() !== owner) return false;
       if (country !== 'all' && (r.country || '').trim() !== country) return false;
+      if (sector !== 'all' && (r.sector || '').trim() !== sector) return false;
       if (minMW > 0 && (r.mw || 0) < minMW) return false;
       if (timelineActive && r.firstOpYear !== null && r.firstOpYear > timelineYear) return false;
       return true;
@@ -1058,7 +1071,7 @@ window.addEventListener('unhandledrejection', (e) => {
   }
 
   // Attach both 'change' and 'input' so selects and number inputs both trigger
-  ['filterStatus', 'filterOwner', 'filterCountry', 'filterMinMW'].forEach(id => {
+  ['filterStatus', 'filterOwner', 'filterCountry', 'filterSector', 'filterMinMW'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('change', applyFilters);
     el.addEventListener('input', applyFilters);
@@ -1521,6 +1534,7 @@ window.addEventListener('unhandledrejection', (e) => {
       status: document.getElementById('filterStatus').value,
       owner:  document.getElementById('filterOwner').value,
       country: document.getElementById('filterCountry').value,
+      sector: document.getElementById('filterSector').value,
       mw: document.getElementById('filterMinMW').value,
       view: viewMode,
       size: sizeMode,
@@ -1536,6 +1550,7 @@ window.addEventListener('unhandledrejection', (e) => {
       if (s.status && s.status !== 'all') params.set('status', s.status);
       if (s.owner && s.owner !== 'all') params.set('owner', s.owner);
       if (s.country && s.country !== 'all') params.set('country', s.country);
+      if (s.sector && s.sector !== 'all') params.set('sector', s.sector);
       if (s.mw && s.mw !== '0') params.set('mw', s.mw);
       if (s.view && s.view !== 'points') params.set('view', s.view);
       if (s.size && s.size !== 'power') params.set('size', s.size);
@@ -1554,6 +1569,7 @@ window.addEventListener('unhandledrejection', (e) => {
     };
     if (p.has('status'))  apply('filterStatus', p.get('status'));
     if (p.has('country')) apply('filterCountry', p.get('country'));
+    if (p.has('sector'))  apply('filterSector', p.get('sector'));
     if (p.has('mw'))      apply('filterMinMW', p.get('mw'));
     // Owner set after options populated (below, after ownerSel populated — done already by this point)
     if (p.has('owner')) {
@@ -1590,7 +1606,7 @@ window.addEventListener('unhandledrejection', (e) => {
   }
 
   // Hook state writes into every control change
-  ['filterStatus', 'filterOwner', 'filterCountry', 'filterMinMW'].forEach(id => {
+  ['filterStatus', 'filterOwner', 'filterCountry', 'filterSector', 'filterMinMW'].forEach(id => {
     document.getElementById(id).addEventListener('change', writeUrlState);
     document.getElementById(id).addEventListener('input', writeUrlState);
   });
