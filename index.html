@@ -534,12 +534,13 @@ window.addEventListener('unhandledrejection', (e) => {
     if (sizeMode === 'h100') return r.h100 || 0;
     return r.mw || 0;
   };
-  const sizeFor = (r) => {
-    const v = weightFor(r);
-    if (!v) return 0.4;
-    const logv = Math.log10(v + 1);
-    return Math.max(0.4, Math.min(4.0, logv * 0.5));
-  };
+  // Reference max weight across currently-filtered data — set per render
+  // so bar/point size scales against the real in-view range.
+  let pointScaleRef = 1;
+  function updatePointScaleRef(data) {
+    const ws = data.map(weightFor).filter(v => v > 0);
+    pointScaleRef = ws.length ? Math.max(1, Math.max(...ws)) : 1;
+  }
 
   // Init globe — Globe.gl UMD build exposes window.Globe as factory
   statusEl.textContent = 'Rendering globe…';
@@ -564,11 +565,26 @@ window.addEventListener('unhandledrejection', (e) => {
     </div>`;
 
   function applyPointsView(data) {
+    updatePointScaleRef(data);
+    // Sqrt scaling against the true max means bar AREA is proportional
+    // to MW — the standard cartographic encoding. A 4 MW cluster reads
+    // as clearly taller than a 1 MW cluster, and a 1000 MW cluster
+    // dominates without crushing everything else.
+    const altFor = d => {
+      const w = weightFor(d);
+      if (!w) return 0.008;
+      return Math.min(0.95, Math.sqrt(w / pointScaleRef) * 0.9);
+    };
+    const radFor = d => {
+      const w = weightFor(d);
+      if (!w) return 0.08;
+      return Math.min(0.7, Math.pow(w / pointScaleRef, 1/3) * 0.55);
+    };
     world
       .hexBinPointsData([])
       .pointsData(data)
-      .pointAltitude(d => Math.max(0.04, sizeFor(d) * 0.08))
-      .pointRadius(d => Math.max(0.35, sizeFor(d) * 0.45))
+      .pointAltitude(altFor)
+      .pointRadius(radFor)
       .pointColor(d => statusColor(d.status))
       .pointLabel(pointTooltip)
       .onPointClick(showDetail);
@@ -604,12 +620,12 @@ window.addEventListener('unhandledrejection', (e) => {
   function applyHeatmapView(rawData) {
     const data = hexData(rawData);
     const ref = binScaleRef(data, 3);
-    // Mild compression (power 0.7) keeps bar height visually proportional
-    // to MW while preventing the largest bins from crushing smaller ones
+    // Near-linear (power 0.9) so bar height closely tracks MW.
+    // 4 MW looks ~3.5x taller than 1 MW, 1000 MW looks ~500x taller.
     const altFor = w => {
       if (!w) return 0.002;
-      const t = Math.pow(w / ref, 0.7);
-      return Math.max(0.01, Math.min(0.85, t * 0.7));
+      const t = Math.pow(w / ref, 0.9);
+      return Math.max(0.003, Math.min(0.9, t * 0.7));
     };
     world
       .pointsData([])
@@ -636,8 +652,8 @@ window.addEventListener('unhandledrejection', (e) => {
     const ref = binScaleRef(data, 6);
     const altFor = w => {
       if (!w) return 0.002;
-      const t = Math.pow(w / ref, 0.7);
-      return Math.max(0.01, Math.min(0.8, t * 0.65));
+      const t = Math.pow(w / ref, 0.9);
+      return Math.max(0.003, Math.min(0.85, t * 0.65));
     };
     world
       .pointsData([])
