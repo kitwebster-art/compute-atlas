@@ -210,6 +210,18 @@
     .size-mode button.active { background: var(--accent); color: #000; border-color: var(--accent); }
     .size-mode button:hover:not(.active) { color: var(--text); border-color: rgba(255,255,255,0.2); }
 
+    .action-btn {
+      flex: 1; padding: 7px 8px; font-size: 10px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-dim); cursor: pointer;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .action-btn:hover {
+      color: var(--accent); border-color: var(--accent);
+      background: rgba(212, 175, 55, 0.06);
+    }
+
     /* Detail panel */
     .detail-panel {
       position: fixed; right: 32px; top: 120px; bottom: 120px; width: 360px;
@@ -562,6 +574,11 @@
       <button data-mode="power" class="active">Power (MW)</button>
       <button data-mode="h100">H100-eq</button>
     </div>
+  </div>
+
+  <div class="filter-row" style="display:flex;gap:6px;margin-top:14px;">
+    <button id="btnSurprise" class="action-btn" title="Random notable cluster (S)">Surprise me</button>
+    <button id="btnExport" class="action-btn" title="Download filtered CSV">Export CSV</button>
   </div>
 </aside>
 
@@ -1579,6 +1596,39 @@ window.addEventListener('unhandledrejection', (e) => {
   });
   document.querySelectorAll('#viewModeToggle button, #sizeModeToggle button').forEach(b => b.addEventListener('click', writeUrlState));
   slider.addEventListener('input', writeUrlState);
+
+  // --- Action buttons: Surprise me + CSV export ---
+  document.getElementById('btnSurprise').addEventListener('click', () => {
+    const pool = (window._filtered || rows).filter(r => r.mw && r.mw > 20);
+    if (!pool.length) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    showDetail(pick);
+  });
+
+  document.getElementById('btnExport').addEventListener('click', () => {
+    const src = window._filtered || rows;
+    const cols = ['name', 'owner', 'status', 'country', 'location',
+      'lat', 'lng', 'mw', 'h100', 'flops', 'chipType', 'chipQty',
+      'totalChips', 'gpuSupplier', 'firstOp', 'sector', 'hardwareCost',
+      'reportedCost', 'certainty'];
+    const esc = v => {
+      if (v === null || v === undefined) return '';
+      const s = String(v).replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    };
+    const header = cols.join(',');
+    const lines = src.map(r => cols.map(c => esc(r[c])).join(','));
+    const blob = new Blob([header + '\n' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `flopmap-${stamp}-${src.length}clusters.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 
   // Read any URL state BEFORE initial render
   readUrlState();
