@@ -798,9 +798,10 @@
     </div>
   </div>
 
-  <div class="filter-row" style="display:flex;gap:6px;margin-top:14px;">
+  <div class="filter-row" style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;">
     <button id="btnSurprise" class="action-btn" title="Random notable cluster (S)">Surprise me</button>
     <button id="btnExport" class="action-btn" title="Download filtered CSV">Export CSV</button>
+    <button id="btnShareView" class="action-btn" title="Copy shareable link to this view" style="flex-basis:100%;">Share this view</button>
   </div>
 </aside>
 
@@ -1314,8 +1315,24 @@ window.addEventListener('unhandledrejection', (e) => {
   // Auto-rotate until user interacts
   world.controls().autoRotate = true;
   world.controls().autoRotateSpeed = 0.35;
-  container.addEventListener('mousedown', () => { world.controls().autoRotate = false; }, { once: true });
-  container.addEventListener('touchstart', () => { world.controls().autoRotate = false; }, { once: true });
+  // Auto-rotate pauses on interaction and resumes after 45s of idle.
+  let idleResumeTimer = null;
+  function pauseAutoRotate() {
+    world.controls().autoRotate = false;
+    if (idleResumeTimer) clearTimeout(idleResumeTimer);
+    idleResumeTimer = setTimeout(() => {
+      // Only resume if no detail panel / modal / overlay is open
+      const panelOpen = document.getElementById('detailPanel')?.classList.contains('visible');
+      const modalOpen = document.getElementById('compareModal')?.classList.contains('visible');
+      const overlayOpen = document.getElementById('kbdOverlay')?.classList.contains('visible');
+      if (!panelOpen && !modalOpen && !overlayOpen) {
+        world.controls().autoRotate = true;
+      }
+    }, 45000);
+  }
+  container.addEventListener('mousedown', pauseAutoRotate);
+  container.addEventListener('touchstart', pauseAutoRotate, { passive: true });
+  container.addEventListener('wheel', pauseAutoRotate, { passive: true });
 
   // Filter + apply
   function applyFilters() {
@@ -2163,6 +2180,16 @@ window.addEventListener('unhandledrejection', (e) => {
     if (!pool.length) return;
     const pick = pool[Math.floor(Math.random() * pool.length)];
     showDetail(pick);
+  });
+
+  document.getElementById('btnShareView').addEventListener('click', () => {
+    const btn = document.getElementById('btnShareView');
+    const url = location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Link copied ✓';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    });
   });
 
   document.getElementById('btnExport').addEventListener('click', () => {
