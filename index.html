@@ -165,6 +165,83 @@
     }
     .detail-panel .sources a:hover { text-decoration: underline; }
 
+    /* Rich detail sections */
+    .detail-panel .section {
+      margin-top: 18px; padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .detail-panel .section:first-of-type { border-top: none; margin-top: 12px; padding-top: 0; }
+    .detail-panel .section-title {
+      font-size: 9px; color: var(--text-dim); font-weight: 600;
+      letter-spacing: 0.4em; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .detail-panel .stat-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 4px;
+    }
+    .detail-panel .stat-tile {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .detail-panel .stat-tile .lbl {
+      font-size: 8px; color: var(--text-muted);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      font-weight: 600; margin-bottom: 3px;
+    }
+    .detail-panel .stat-tile .val {
+      font-family: var(--mono); font-size: 13px;
+      color: var(--text); font-weight: 500;
+    }
+    .detail-panel .stat-tile .sub {
+      font-size: 9px; color: var(--text-muted);
+      margin-top: 2px; font-family: var(--mono);
+    }
+    .detail-panel .context-chip {
+      display: inline-flex; align-items: center;
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 14px; padding: 4px 10px;
+      font-size: 10px; color: var(--accent);
+      margin: 3px 4px 3px 0; letter-spacing: 0.02em;
+    }
+    .detail-panel .context-chip.neutral {
+      background: rgba(255,255,255,0.03);
+      border-color: var(--border); color: var(--text-dim);
+    }
+    .detail-panel details {
+      margin-top: 12px; font-size: 11px;
+    }
+    .detail-panel details summary {
+      cursor: pointer; color: var(--text-dim);
+      font-size: 10px; letter-spacing: 0.2em;
+      text-transform: uppercase; font-weight: 600;
+      padding: 6px 0; user-select: none;
+    }
+    .detail-panel details summary:hover { color: var(--accent); }
+    .detail-panel details[open] summary { color: var(--text); margin-bottom: 6px; }
+    .detail-panel .link-btn {
+      display: inline-block; margin-top: 10px;
+      font-size: 10px; color: var(--accent); text-decoration: none;
+      padding: 5px 10px; border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 4px; letter-spacing: 0.15em;
+      text-transform: uppercase; font-weight: 600;
+      transition: all 0.15s;
+    }
+    .detail-panel .link-btn:hover {
+      background: rgba(212, 175, 55, 0.1); color: var(--accent);
+    }
+    .detail-panel .copy-btn {
+      display: inline-block; margin-left: 6px;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 9px;
+      padding: 3px 8px; border-radius: 3px; cursor: pointer;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      font-family: inherit;
+    }
+    .detail-panel .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
     /* Leaderboard */
     .leaderboard {
       position: fixed; right: 32px; top: 120px; width: 300px; z-index: 10;
@@ -476,16 +553,55 @@ window.addEventListener('unhandledrejection', (e) => {
       flops: flopsLog ? Math.pow(10, flopsLog) : null,
       chipType: r['Chip type (primary)'],
       chipQty: numeric(r['Chip quantity (primary)']),
+      chipType2: r['Chip type (secondary)'],
+      chipQty2: numeric(r['Chip quantity (secondary)']),
+      totalChips: numeric(r['Total number of AI chips']),
+      gpuSupplier: r['GPU Supplier (primary)'],
+      gpuSupplier2: r['GPU supplier (secondary)'],
       firstOp: r['First Operational Date'],
       firstOpYear: parseYear(r['First Operational Date']),
+      firstOpNote: r['First Operational Date Note'],
       note: r.Note,
       quote: r.Quote,
       sector: r.Sector,
-      sources: [r['Source 1'], r['Source 2'], r['Source 3']].filter(Boolean),
+      users: r.Users,
+      certainty: r.Certainty,
+      certaintyNote: r['Certainty Note'],
+      hardwareNote: r['Hardware note'],
+      noteworthy: r.Noteworthy,
+      hardwareCost: numeric(r['Hardware Cost']),
+      calcCost: numeric(r['Calculated Cost']),
+      reportedCost: numeric(r['Reported Cost']),
+      reportedCostInfl: numeric(r['Reported Cost (Inflation adjusted)']),
+      costQuote: r['Cost Quote'],
+      energyEfficiency: numeric(r['Energy Efficiency']),
+      flops8: numeric(r['8-bit OP/s']),
+      flops16: numeric(r['16-bit OP/s']),
+      flops32: numeric(r['32-bit OP/s']),
+      rankAtStart: numeric(r['Rank when first operational']),
+      pctOfLargest: numeric(r['% of largest cluster when first operational']),
+      buildsUpon: r['Builds Upon'],
+      supersededBy: r['Superseded by'],
+      decommissioned: r['Decommissioned Date (if applicable)'],
+      singleCluster: r['Single cluster?'],
+      sources: [r['Source 1'], r['Source 2'], r['Source 3'], r['Source 4'], r['Source 5']].filter(Boolean),
     };
   }).filter(Boolean);
 
   console.log(`Loaded ${rows.length} compute clusters`);
+
+  // Global totals — two sets: operational-only and all tracked (operational + planned + construction).
+  // % chips compare like-for-like: operational clusters against operational totals, non-operational against the full tracked set.
+  const globalTotals = (() => {
+    const isOp = r => /existing|operational/i.test(r.status || '');
+    const op = rows.filter(isOp);
+    const all = rows.filter(r => !/decommission/i.test(r.status || ''));
+    const sum = (arr, k) => arr.reduce((a, r) => a + (r[k] || 0), 0);
+    return {
+      op:  { mw: sum(op, 'mw'),  h100: sum(op, 'h100'),  flops: sum(op, 'flops'),  count: op.length },
+      all: { mw: sum(all, 'mw'), h100: sum(all, 'h100'), flops: sum(all, 'flops'), count: all.length },
+    };
+  })();
 
   // Timeline bounds — min/max year across dataset
   const years = rows.map(r => r.firstOpYear).filter(y => y !== null);
@@ -564,7 +680,12 @@ window.addEventListener('unhandledrejection', (e) => {
       ${d.mw ? `<div style="font-size:11px;color:#e8e8ec;margin-top:6px;font-family:JetBrains Mono,monospace;">${fmtNum(d.mw)} MW</div>` : ''}
     </div>`;
 
+  function clearHeatmap() {
+    if (world.heatmapsData) world.heatmapsData([]);
+  }
+
   function applyPointsView(data) {
+    clearHeatmap();
     updatePointScaleRef(data);
     // Sqrt scaling against the true max means bar AREA is proportional
     // to MW — the standard cartographic encoding. A 4 MW cluster reads
@@ -572,8 +693,8 @@ window.addEventListener('unhandledrejection', (e) => {
     // dominates without crushing everything else.
     const altFor = d => {
       const w = weightFor(d);
-      if (!w) return 0.008;
-      return Math.min(0.95, Math.sqrt(w / pointScaleRef) * 0.9);
+      if (!w) return 0.005;
+      return Math.min(0.55, Math.sqrt(w / pointScaleRef) * 0.5);
     };
     const radFor = d => {
       const w = weightFor(d);
@@ -618,23 +739,24 @@ window.addEventListener('unhandledrejection', (e) => {
   }
 
   function applyHeatmapView(rawData) {
+    clearHeatmap();
     const data = hexData(rawData);
-    const ref = binScaleRef(data, 3);
-    // Near-linear (power 0.9) so bar height closely tracks MW.
-    // 4 MW looks ~3.5x taller than 1 MW, 1000 MW looks ~500x taller.
-    const altFor = w => {
+    const ref = binScaleRef(data, 2);
+    // Glowing-zones heatmap look: mid-resolution hex cells coloured by density,
+    // with small altitude bumps over hot regions (reads as heat, not bars).
+    const bumpFor = w => {
       if (!w) return 0.002;
-      const t = Math.pow(w / ref, 0.9);
-      return Math.max(0.003, Math.min(0.9, t * 0.7));
+      const t = Math.pow(w / ref, 0.85);
+      return Math.max(0.004, Math.min(0.08, t * 0.08));
     };
     world
       .pointsData([])
       .hexBinPointsData(data)
       .hexBinPointWeight(d => weightFor(d) || 1)
       .hexBinResolution(4)
-      .hexAltitude(({ sumWeight }) => altFor(sumWeight))
-      .hexTopColor(({ sumWeight }) => heatColor(sumWeight, 1, ref))
-      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 0.55, ref))
+      .hexAltitude(({ sumWeight }) => bumpFor(sumWeight))
+      .hexTopColor(({ sumWeight }) => heatColor(sumWeight, 1.6, ref))
+      .hexSideColor(({ sumWeight }) => heatColor(sumWeight, 1.1, ref))
       .hexLabel(({ points, sumWeight }) => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:160px;">
         <div style="font-size:11px;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Cluster region</div>
         <div style="font-size:12px;">${points.length} site${points.length === 1 ? '' : 's'}</div>
@@ -648,12 +770,13 @@ window.addEventListener('unhandledrejection', (e) => {
   }
 
   function applyHexView(rawData) {
+    clearHeatmap();
     const data = hexData(rawData);
     const ref = binScaleRef(data, 6);
     const altFor = w => {
       if (!w) return 0.002;
       const t = Math.pow(w / ref, 0.9);
-      return Math.max(0.003, Math.min(0.85, t * 0.65));
+      return Math.max(0.003, Math.min(0.55, t * 0.4));
     };
     world
       .pointsData([])
@@ -866,39 +989,171 @@ window.addEventListener('unhandledrejection', (e) => {
 
   window._showDetail = showDetail;
   function showDetail(d) {
-    const statusClass = (d.status || '').toLowerCase().includes('existing') || (d.status || '').toLowerCase().includes('operational')
+    const statusLower = (d.status || '').toLowerCase();
+    const statusClass = statusLower.includes('existing') || statusLower.includes('operational')
       ? 'status-operational'
-      : (d.status || '').toLowerCase().includes('construction')
+      : statusLower.includes('construction')
         ? 'status-under-construction'
-        : (d.status || '').toLowerCase().includes('planned')
+        : statusLower.includes('planned')
           ? 'status-planned'
           : 'status-decommissioned';
+
+    // Derived comparative context — compare operational to operational, non-operational to all tracked
+    const isOpCluster = /existing|operational/i.test(d.status || '');
+    const refTotals = isOpCluster ? globalTotals.op : globalTotals.all;
+    const refLabel = isOpCluster ? 'operational' : 'tracked';
+    const homesPowered = d.mw ? Math.round(d.mw * 1000 / 1.2) : null; // avg household ~1.2 kW continuous
+    const pctGlobalMw = d.mw && refTotals.mw ? (d.mw / refTotals.mw * 100) : null;
+    const pctGlobalH100 = d.h100 && refTotals.h100 ? (d.h100 / refTotals.h100 * 100) : null;
+    const pctGlobalFlops = d.flops && refTotals.flops ? (d.flops / refTotals.flops * 100) : null;
+
+    // Cost: prefer reported, then calculated, then raw hardware
+    const costVal = d.reportedCostInfl ?? d.reportedCost ?? d.calcCost ?? d.hardwareCost;
+    const costLabel = d.reportedCostInfl ? 'Reported (infl-adj)' : d.reportedCost ? 'Reported' : d.calcCost ? 'Estimated' : d.hardwareCost ? 'Hardware cost' : null;
+
+    // Energy — kWh/yr at 100% load (1 MW = 8760 MWh/yr)
+    const annualMwh = d.mw ? d.mw * 8760 : null;
+    // CO2 equivalent (global grid ~0.45 kg CO2/kWh)
+    const co2Tons = annualMwh ? Math.round(annualMwh * 1000 * 0.45 / 1000) : null;
+
+    // Chip blend string
+    const chipSummary = [
+      d.chipType && (d.chipType + (d.chipQty ? ` × ${fmtNum(d.chipQty)}` : '')),
+      d.chipType2 && (d.chipType2 + (d.chipQty2 ? ` × ${fmtNum(d.chipQty2)}` : ''))
+    ].filter(Boolean).join(' + ');
+
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}`;
 
     panelContent.innerHTML = `
       <span class="status-pill ${statusClass}">${escapeHtml(d.status || 'Unknown')}</span>
       <h2>${escapeHtml(d.name || 'Unnamed cluster')}</h2>
-      <div class="owner">${escapeHtml(d.owner || 'Unknown operator')}</div>
+      <div class="owner">${escapeHtml(d.owner || 'Unknown operator')}${d.sector ? ` · ${escapeHtml(d.sector)}` : ''}</div>
 
-      ${d.location ? `<div class="spec-row"><span class="label">Location</span><span class="value">${escapeHtml(d.location)}</span></div>` : ''}
-      ${d.country ? `<div class="spec-row"><span class="label">Country</span><span class="value">${escapeHtml(d.country)}</span></div>` : ''}
-      ${d.mw ? `<div class="spec-row"><span class="label">Power capacity</span><span class="value">${fmtNum(d.mw)} MW</span></div>` : ''}
-      ${d.h100 ? `<div class="spec-row"><span class="label">H100 equivalents</span><span class="value">${fmtNum(d.h100)}</span></div>` : ''}
-      ${d.flops ? `<div class="spec-row"><span class="label">Peak FLOPS</span><span class="value">${fmtFlops(d.flops)}</span></div>` : ''}
-      ${d.chipType ? `<div class="spec-row"><span class="label">Primary chip</span><span class="value">${escapeHtml(d.chipType)}${d.chipQty ? ` · ${fmtNum(d.chipQty)}` : ''}</span></div>` : ''}
-      ${d.sector ? `<div class="spec-row"><span class="label">Sector</span><span class="value">${escapeHtml(d.sector)}</span></div>` : ''}
-      ${d.firstOp ? `<div class="spec-row"><span class="label">First operational</span><span class="value">${escapeHtml(d.firstOp)}</span></div>` : ''}
-      ${d.note ? `<div class="note">${escapeHtml(d.note)}</div>` : ''}
-      ${d.quote ? `<div class="note" style="font-style:italic;">${escapeHtml(d.quote.substring(0, 300))}${d.quote.length > 300 ? '…' : ''}</div>` : ''}
-      ${d.sources.length ? `<div class="sources">
-        <div style="color:var(--text-dim);text-transform:uppercase;letter-spacing:0.2em;font-weight:600;margin-bottom:6px;">Sources</div>
+      <!-- Context chips -->
+      <div style="margin: 0 0 6px;">
+        ${pctGlobalMw !== null && pctGlobalMw >= 0.1 ? `<span class="context-chip">${pctGlobalMw.toFixed(pctGlobalMw >= 1 ? 1 : 2)}% of ${refLabel} global power</span>` : ''}
+        ${homesPowered ? `<span class="context-chip neutral">Powers ~${fmtNum(homesPowered)} homes</span>` : ''}
+        ${d.rankAtStart ? `<span class="context-chip">#${d.rankAtStart} largest at launch</span>` : ''}
+        ${d.certainty ? `<span class="context-chip neutral">Certainty: ${escapeHtml(d.certainty)}</span>` : ''}
+        ${d.noteworthy && /^(true|yes|y)$/i.test(d.noteworthy.trim()) ? `<span class="context-chip">★ Noteworthy</span>` : ''}
+      </div>
+
+      <!-- Headline stats -->
+      <div class="section">
+        <div class="section-title">Compute &amp; Power</div>
+        <div class="stat-grid">
+          ${d.mw ? `<div class="stat-tile"><div class="lbl">Power</div><div class="val">${fmtNum(d.mw)} MW</div>${annualMwh ? `<div class="sub">${fmtNum(annualMwh)} MWh / yr</div>` : ''}</div>` : ''}
+          ${d.h100 ? `<div class="stat-tile"><div class="lbl">H100 equivalents</div><div class="val">${fmtNum(d.h100)}</div>${pctGlobalH100 !== null && pctGlobalH100 >= 0.05 ? `<div class="sub">${pctGlobalH100.toFixed(2)}% of ${refLabel}</div>` : ''}</div>` : ''}
+          ${d.flops ? `<div class="stat-tile"><div class="lbl">Peak FLOP/s</div><div class="val">${fmtFlops(d.flops)}</div>${pctGlobalFlops !== null && pctGlobalFlops >= 0.05 ? `<div class="sub">${pctGlobalFlops.toFixed(2)}% of ${refLabel}</div>` : ''}</div>` : ''}
+          ${d.totalChips ? `<div class="stat-tile"><div class="lbl">Total AI chips</div><div class="val">${fmtNum(d.totalChips)}</div></div>` : ''}
+          ${d.energyEfficiency ? `<div class="stat-tile"><div class="lbl">Energy efficiency</div><div class="val">${fmtFlops(d.energyEfficiency)}/W</div></div>` : ''}
+          ${co2Tons ? `<div class="stat-tile"><div class="lbl">CO₂ / yr (grid avg)</div><div class="val">${fmtNum(co2Tons)} t</div><div class="sub">at 100% load</div></div>` : ''}
+        </div>
+      </div>
+
+      ${chipSummary || d.gpuSupplier ? `
+      <div class="section">
+        <div class="section-title">Hardware</div>
+        ${chipSummary ? `<div class="spec-row"><span class="label">Chip blend</span><span class="value">${escapeHtml(chipSummary)}</span></div>` : ''}
+        ${d.gpuSupplier ? `<div class="spec-row"><span class="label">GPU supplier</span><span class="value">${escapeHtml(d.gpuSupplier)}${d.gpuSupplier2 ? ` · ${escapeHtml(d.gpuSupplier2)}` : ''}</span></div>` : ''}
+        ${d.flops16 || d.flops8 || d.flops32 ? `
+          <div class="spec-row"><span class="label">Precision peaks</span><span class="value" style="font-size:10px;">${[
+            d.flops8 ? `8b: ${fmtFlops(d.flops8)}` : null,
+            d.flops16 ? `16b: ${fmtFlops(d.flops16)}` : null,
+            d.flops32 ? `32b: ${fmtFlops(d.flops32)}` : null,
+          ].filter(Boolean).join(' · ')}</span></div>
+        ` : ''}
+        ${d.hardwareNote ? `<div class="note">${escapeHtml(d.hardwareNote)}</div>` : ''}
+      </div>` : ''}
+
+      ${costVal ? `
+      <div class="section">
+        <div class="section-title">Economics</div>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="lbl">${escapeHtml(costLabel)}</div><div class="val">${fmtMoney(costVal)}</div></div>
+          ${d.mw && costVal ? `<div class="stat-tile"><div class="lbl">Cost per MW</div><div class="val">${fmtMoney(costVal / d.mw)}</div></div>` : ''}
+        </div>
+        ${d.costQuote ? `<div class="note" style="font-style:italic;">${escapeHtml(d.costQuote.substring(0, 240))}${d.costQuote.length > 240 ? '…' : ''}</div>` : ''}
+      </div>` : ''}
+
+      <div class="section">
+        <div class="section-title">Site &amp; Timeline</div>
+        ${d.location ? `<div class="spec-row"><span class="label">Location</span><span class="value">${escapeHtml(d.location)}</span></div>` : ''}
+        ${d.country ? `<div class="spec-row"><span class="label">Country</span><span class="value">${escapeHtml(d.country)}</span></div>` : ''}
+        <div class="spec-row"><span class="label">Coordinates</span><span class="value">${d.lat.toFixed(3)}, ${d.lng.toFixed(3)} <button class="copy-btn" data-copy="${d.lat},${d.lng}">Copy</button></span></div>
+        ${d.firstOp ? `<div class="spec-row"><span class="label">First operational</span><span class="value">${escapeHtml(d.firstOp)}</span></div>` : ''}
+        ${d.decommissioned ? `<div class="spec-row"><span class="label">Decommissioned</span><span class="value">${escapeHtml(d.decommissioned)}</span></div>` : ''}
+        ${d.buildsUpon ? `<div class="spec-row"><span class="label">Builds upon</span><span class="value">${escapeHtml(d.buildsUpon)}</span></div>` : ''}
+        ${d.supersededBy ? `<div class="spec-row"><span class="label">Superseded by</span><span class="value">${escapeHtml(d.supersededBy)}</span></div>` : ''}
+        <a href="${googleMapsUrl}" target="_blank" rel="noopener" class="link-btn">Open in Google Maps ↗</a>
+      </div>
+
+      ${d.note || d.quote || (d.noteworthy && !/^(true|yes|y|no|n|false)$/i.test(d.noteworthy.trim())) ? `
+      <div class="section">
+        <div class="section-title">Notes</div>
+        ${d.noteworthy && !/^(true|yes|y|no|n|false)$/i.test(d.noteworthy.trim()) ? `<div class="note"><strong style="color:var(--accent);">Noteworthy:</strong> ${escapeHtml(d.noteworthy)}</div>` : ''}
+        ${d.note ? `<div class="note">${escapeHtml(d.note)}</div>` : ''}
+        ${d.quote ? `<div class="note" style="font-style:italic;">"${escapeHtml(d.quote.substring(0, 400))}${d.quote.length > 400 ? '…' : ''}"</div>` : ''}
+        ${d.certaintyNote || d.firstOpNote || d.users ? `
+          <details>
+            <summary>More detail</summary>
+            ${d.users ? `<div style="margin-bottom:6px;"><strong>Users:</strong> ${escapeHtml(d.users)}</div>` : ''}
+            ${d.firstOpNote ? `<div style="margin-bottom:6px;"><strong>Operational date note:</strong> ${escapeHtml(d.firstOpNote)}</div>` : ''}
+            ${d.certaintyNote ? `<div><strong>Certainty note:</strong> ${escapeHtml(d.certaintyNote)}</div>` : ''}
+          </details>
+        ` : ''}
+      </div>` : ''}
+
+      ${d.sources.length ? `<div class="section sources">
+        <div class="section-title">Sources (${d.sources.length})</div>
         ${d.sources.map(s => `<a href="${escapeHtml(s)}" target="_blank" rel="noopener">${escapeHtml(truncUrl(s))}</a>`).join('')}
       </div>` : ''}
+
+      <div class="section" style="padding-top:10px;">
+        <a class="link-btn" href="#" data-share="1">Copy shareable link</a>
+      </div>
     `;
+
+    // Wire up copy buttons
+    panelContent.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+          const orig = btn.textContent;
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = orig; }, 1200);
+        });
+      });
+    });
+
+    // Shareable link — URL fragment with cluster name
+    const shareBtn = panelContent.querySelector('[data-share]');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', e => {
+        e.preventDefault();
+        const url = `${location.origin}${location.pathname}#cluster=${encodeURIComponent(d.name || '')}`;
+        navigator.clipboard.writeText(url).then(() => {
+          const orig = shareBtn.textContent;
+          shareBtn.textContent = 'Link copied ✓';
+          setTimeout(() => { shareBtn.textContent = orig; }, 1500);
+        });
+      });
+    }
+
     panel.classList.add('visible');
     leaderboardEl.classList.add('hidden');
 
     // Zoom to cluster
     world.pointOfView({ lat: d.lat, lng: d.lng, altitude: 1.2 }, 800);
+  }
+
+  // Pretty-print cost. Epoch's cost values are in USD already.
+  function fmtMoney(n) {
+    if (!n) return '—';
+    if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'k';
+    return '$' + n.toFixed(0);
   }
 
   function escapeHtml(s) {
@@ -935,6 +1190,14 @@ window.addEventListener('unhandledrejection', (e) => {
 
   // Initial render
   applyFilters();
+
+  // Deep-link: open a specific cluster from #cluster=Name on page load
+  const hashMatch = location.hash.match(/cluster=([^&]+)/);
+  if (hashMatch) {
+    const wanted = decodeURIComponent(hashMatch[1]).toLowerCase();
+    const found = rows.find(r => (r.name || '').toLowerCase() === wanted);
+    if (found) setTimeout(() => showDetail(found), 600);
+  }
 
   // Hide loader
   setTimeout(() => loader.style.display = 'none', 200);
