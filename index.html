@@ -198,6 +198,34 @@
     body.press-mode .press-hint {
       display: block;
     }
+
+    /* Embed mode — for iframes: hides most chrome but keeps a mini attribution */
+    body.embed-mode .masthead,
+    body.embed-mode .search-wrap,
+    body.embed-mode .filters,
+    body.embed-mode .leaderboard,
+    body.embed-mode .timeline,
+    body.embed-mode .compare-tray,
+    body.embed-mode .mobile-filter-toggle {
+      display: none !important;
+    }
+    body.embed-mode .legend { left: 12px; bottom: 12px; font-size: 10px; padding: 10px 14px; }
+    body.embed-mode .detail-panel { width: 280px; }
+    body.embed-mode .footer {
+      right: 12px; bottom: 12px; font-size: 9px;
+      background: rgba(5,7,13,0.7); padding: 5px 10px; border-radius: 14px;
+      backdrop-filter: blur(8px); border: 1px solid var(--border);
+    }
+    body.embed-mode .embed-badge { display: flex; }
+    .embed-badge {
+      display: none; position: fixed; top: 12px; left: 12px; z-index: 20;
+      font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--accent); background: rgba(5,7,13,0.7);
+      padding: 6px 12px; border-radius: 14px; border: 1px solid var(--border);
+      backdrop-filter: blur(8px); text-decoration: none; gap: 6px;
+      align-items: center;
+    }
+    .embed-badge:hover { background: rgba(212,175,55,0.1); }
     .press-hint {
       display: none; position: fixed; top: 12px; left: 50%;
       transform: translateX(-50%); z-index: 200;
@@ -971,6 +999,14 @@
       count is misleading. Many planned sites lack power or FLOP/s estimates.
       Not every cluster on earth is here; this is the best public dataset we have.
     </div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Embed</div>
+    <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:8px;">
+      Drop this into any page to embed a live FLOP Map (chrome-hidden, attribution kept):
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+      <code id="embedCode" style="flex:1;font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:8px 10px;border-radius:6px;overflow-x:auto;white-space:nowrap;">&lt;iframe src="https://flopmap.com/?embed=1" width="100%" height="600" style="border:0;border-radius:10px;"&gt;&lt;/iframe&gt;</code>
+      <button id="copyEmbed" class="action-btn" style="flex-shrink:0;">Copy</button>
+    </div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Credits</div>
     <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
       Built by <a href="https://www.kitwebster.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Kit Webster</a>
@@ -982,6 +1018,8 @@
 </div>
 
 <div class="press-hint" id="pressHint">Press mode · Press H to exit</div>
+
+<a class="embed-badge" id="embedBadge" href="https://flopmap.com" target="_blank" rel="noopener">FLOP Map → open full</a>
 
 <button class="mobile-filter-toggle" id="mobileFilterToggle" aria-label="Toggle filters">Filters</button>
 
@@ -2229,6 +2267,15 @@ window.addEventListener('unhandledrejection', (e) => {
   aboutOverlay?.addEventListener('click', e => {
     if (e.target === aboutOverlay) aboutOverlay.classList.remove('visible');
   });
+  const copyEmbed = document.getElementById('copyEmbed');
+  copyEmbed?.addEventListener('click', () => {
+    const code = document.getElementById('embedCode')?.textContent || '';
+    navigator.clipboard.writeText(code).then(() => {
+      const prev = copyEmbed.textContent;
+      copyEmbed.textContent = 'Copied';
+      setTimeout(() => { copyEmbed.textContent = prev; }, 1500);
+    }).catch(() => {});
+  });
 
   const selectViewMode = (mode) => {
     const btn = document.querySelector(`#viewModeToggle button[data-view="${mode}"]`);
@@ -2399,6 +2446,10 @@ window.addEventListener('unhandledrejection', (e) => {
   }
   function readUrlState() {
     const p = new URLSearchParams(location.search);
+    // Embed mode: ?embed=1 hides chrome and shows a small attribution badge
+    if (p.get('embed') === '1' || p.get('embed') === 'true') {
+      document.body.classList.add('embed-mode');
+    }
     const apply = (id, val) => {
       if (val === null || val === undefined) return;
       const el = document.getElementById(id);
