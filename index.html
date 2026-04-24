@@ -1110,12 +1110,23 @@ window.addEventListener('unhandledrejection', (e) => {
     .atmosphereColor('#6495ed')
     .atmosphereAltitude(0.22);
 
-  const pointTooltip = d => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:200px;">
+  const pointTooltip = d => {
+    const chip = d.chipType ? (d.chipType + (d.chipQty ? ` × ${fmtNum(d.chipQty)}` : '')) : '';
+    const opYear = d.firstOpYear ? d.firstOpYear : '';
+    const statsLine = [
+      d.mw ? `${fmtNum(d.mw)} MW` : '',
+      d.h100 ? `${fmtNum(d.h100)} H100-eq` : '',
+      d.flops ? fmtFlops(d.flops) : '',
+    ].filter(Boolean).join(' · ');
+    return `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:10px 14px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:220px;max-width:280px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
       <div style="font-size:13px;font-weight:500;margin-bottom:2px;">${escapeHtml(d.name)}</div>
-      <div style="font-size:11px;color:#8a8a98;margin-bottom:6px;">${escapeHtml(d.owner)} · ${escapeHtml(d.country || '—')}</div>
-      <div style="font-size:11px;color:${statusColor(d.status)};letter-spacing:0.2em;text-transform:uppercase;">${escapeHtml(d.status || 'Unknown')}</div>
-      ${d.mw ? `<div style="font-size:11px;color:#e8e8ec;margin-top:6px;font-family:JetBrains Mono,monospace;">${fmtNum(d.mw)} MW</div>` : ''}
+      <div style="font-size:11px;color:#8a8a98;margin-bottom:6px;">${escapeHtml(d.owner || 'Unknown operator')} · ${escapeHtml(d.country || '—')}</div>
+      <div style="font-size:9px;color:${statusColor(d.status)};letter-spacing:0.2em;text-transform:uppercase;font-weight:600;">${escapeHtml(d.status || 'Unknown')}${opYear ? ` · ${opYear}` : ''}</div>
+      ${statsLine ? `<div style="font-size:11px;color:#e8e8ec;margin-top:8px;font-family:JetBrains Mono,monospace;letter-spacing:0.03em;">${statsLine}</div>` : ''}
+      ${chip ? `<div style="font-size:10px;color:#8a8a98;margin-top:3px;font-family:JetBrains Mono,monospace;">${escapeHtml(chip)}</div>` : ''}
+      <div style="font-size:9px;color:#555;margin-top:8px;letter-spacing:0.15em;text-transform:uppercase;">Click for details</div>
     </div>`;
+  };
 
   function clearHeatmap() {
     if (world.heatmapsData) world.heatmapsData([]);
