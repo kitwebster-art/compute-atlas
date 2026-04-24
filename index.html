@@ -1106,7 +1106,16 @@ window.addEventListener('unhandledrejection', (e) => {
       sparkCaption.textContent = `All-time ${fmtMwCompact(total)} added · click a bar to jump`;
     } else {
       const mw = mwAddedByYear[activeYear] || 0;
-      sparkCaption.textContent = `${activeYear}: ${fmtMwCompact(mw)} added`;
+      const prev = mwAddedByYear[activeYear - 1] || 0;
+      let yoy = '';
+      if (prev > 0 && mw > 0) {
+        const pct = ((mw - prev) / prev) * 100;
+        const sign = pct >= 0 ? '+' : '';
+        yoy = ` · ${sign}${pct.toFixed(0)}% vs ${activeYear - 1}`;
+      } else if (mw > 0 && prev === 0) {
+        yoy = ` · first year with additions`;
+      }
+      sparkCaption.textContent = `${activeYear}: ${fmtMwCompact(mw)} added${yoy}`;
     }
   }
   function fmtMwCompact(mw) {
