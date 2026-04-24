@@ -65,6 +65,15 @@
       font-size: 22px; color: var(--text); font-weight: 500;
       display: block; margin-bottom: 2px;
     }
+    .counter .stats-line {
+      display: block; margin-top: 8px;
+      font-size: 10px; color: var(--text-dim);
+      font-family: var(--mono); letter-spacing: 0.08em;
+    }
+    .counter .stats-line strong {
+      color: var(--accent); font-weight: 500; margin-right: 2px;
+    }
+    .counter .stats-line .sep { color: var(--border); margin: 0 6px; }
 
     /* Filters */
     .filters {
@@ -719,6 +728,7 @@
   <div class="counter">
     <span class="big" id="visibleCount">—</span>
     <span>CLUSTERS SHOWN</span>
+    <span class="stats-line" id="visibleStats"></span>
   </div>
 </header>
 
@@ -1332,6 +1342,18 @@ window.addEventListener('unhandledrejection', (e) => {
     window._filtered = filtered;
     renderView(filtered);
     document.getElementById('visibleCount').textContent = filtered.length.toLocaleString();
+    // Totals strip under the counter
+    const totalMW = filtered.reduce((s, r) => s + (r.mw || 0), 0);
+    const totalH100 = filtered.reduce((s, r) => s + (r.h100 || 0), 0);
+    const totalFlops = filtered.reduce((s, r) => s + (r.flops || 0), 0);
+    const statsLineEl = document.getElementById('visibleStats');
+    if (statsLineEl) {
+      const parts = [];
+      if (totalMW) parts.push(`<strong>${totalMW >= 1000 ? (totalMW / 1000).toFixed(1) + ' GW' : fmtNum(totalMW) + ' MW'}</strong>`);
+      if (totalH100) parts.push(`<strong>${fmtNum(totalH100)}</strong> H100-eq`);
+      if (totalFlops) parts.push(`<strong>${fmtFlops(totalFlops)}</strong>`);
+      statsLineEl.innerHTML = parts.join('<span class="sep">·</span>');
+    }
     renderLeaderboard(filtered);
     console.log('[Compute Atlas] filter applied:', { status, owner, country, minMW, year: timelineActive ? timelineYear : 'all', shown: filtered.length, view: viewMode });
   }
