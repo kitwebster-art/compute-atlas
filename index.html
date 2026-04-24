@@ -863,6 +863,8 @@
   <span class="sep">·</span>
   <span>Data: <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener">Epoch AI · CC BY</a></span>
   <span class="sep">·</span>
+  <span id="dataStamp" title="Last data refresh">—</span>
+  <span class="sep">·</span>
   <a href="#" id="kbdHint" style="color:var(--text-muted);text-decoration:none;">Press <span style="font-family:var(--mono);background:rgba(255,255,255,0.04);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">?</span></a>
 </div>
 
@@ -912,6 +914,21 @@ window.addEventListener('unhandledrejection', (e) => {
   statusEl.textContent = 'Fetching compute data…';
   const resp = await fetch('./gpu_clusters.csv');
   const csvText = await resp.text();
+  // Freshness stamp from the Last-Modified header
+  try {
+    const lm = resp.headers.get('Last-Modified');
+    if (lm) {
+      const d = new Date(lm);
+      if (!isNaN(d)) {
+        const stampEl = document.getElementById('dataStamp');
+        if (stampEl) {
+          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          stampEl.textContent = `refreshed ${months[d.getMonth()]} ${d.getFullYear()}`;
+          stampEl.title = `Data file last modified ${d.toISOString().slice(0,10)}`;
+        }
+      }
+    }
+  } catch {}
 
   statusEl.textContent = 'Parsing…';
   const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true }).data;
