@@ -743,17 +743,50 @@
     }
 
     @media (max-width: 800px) {
-      .filters { left: 12px; top: 90px; width: calc(100% - 24px); }
-      .detail-panel { right: 12px; left: 12px; width: auto; top: auto; bottom: 12px; height: 45vh; }
+      .masthead { left: 12px; top: 12px; max-width: calc(100vw - 110px); }
+      .masthead h1 { font-size: 16px; line-height: 1.15; }
+      .masthead .tagline { display: none; }
+      .masthead .eyebrow { font-size: 9px; }
+      .counter { right: 12px; top: 12px; text-align: right; }
+      .counter .big { font-size: 22px; }
+      .counter span:not(.big):not(.stats-line) { font-size: 8px; letter-spacing: 0.2em; }
+      .counter .stats-line { display: none; }
+      .search-wrap { top: 80px; }
+      .region-strip { flex-wrap: wrap; justify-content: center; gap: 4px; }
+      .region-strip button { font-size: 9px; padding: 4px 8px; }
+      .filters {
+        left: 12px; top: auto; bottom: 70px; width: calc(100% - 24px);
+        max-height: 50vh; overflow-y: auto;
+        display: none;
+      }
+      .filters.mobile-open { display: block; }
+      .mobile-filter-toggle {
+        display: flex !important;
+        position: fixed; left: 12px; bottom: 12px; z-index: 11;
+        padding: 10px 14px; border-radius: 24px;
+        background: var(--accent); color: #000;
+        font-family: var(--sans); font-weight: 600; font-size: 11px;
+        border: none; letter-spacing: 0.1em; text-transform: uppercase;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      }
+      .detail-panel { right: 12px; left: 12px; width: auto; top: auto; bottom: 12px; height: 55vh; }
       .legend { display: none; }
       .leaderboard { display: none; }
-      .timeline { width: calc(100% - 24px); left: 12px; transform: none; bottom: 80px; }
-      .footer { right: 12px; bottom: 12px; }
-      .compare-tray { left: 12px; right: 12px; bottom: 12px; max-width: none; flex-wrap: wrap; }
+      .timeline { width: calc(100% - 24px); left: 12px; transform: none; bottom: 70px; }
+      .footer {
+        right: 12px; bottom: 18px; left: 130px;
+        font-size: 8px; letter-spacing: 0.08em; gap: 6px;
+        flex-wrap: wrap; justify-content: flex-end;
+      }
+      .footer .sep { display: none; }
+      .footer span { white-space: nowrap; }
+      .compare-tray { left: 12px; right: 12px; bottom: 72px; max-width: none; flex-wrap: wrap; }
       .compare-modal { padding: 12px; }
       .compare-modal .box { padding: 18px; }
       .compare-table th { width: auto; }
+      .press-hint { top: 12px; left: 12px; font-size: 9px; }
     }
+    .mobile-filter-toggle { display: none; }
   </style>
 </head>
 <body>
@@ -913,6 +946,8 @@
 </div>
 
 <div class="press-hint" id="pressHint">Press mode · Press H to exit</div>
+
+<button class="mobile-filter-toggle" id="mobileFilterToggle" aria-label="Toggle filters">Filters</button>
 
 <div class="kbd-overlay" id="kbdOverlay">
   <div class="card">
@@ -2233,6 +2268,16 @@ window.addEventListener('unhandledrejection', (e) => {
       toggleFullscreen();
     }
   });
+
+  // Mobile filter toggle
+  const mft = document.getElementById('mobileFilterToggle');
+  if (mft) {
+    const filtersEl = document.querySelector('.filters');
+    mft.addEventListener('click', () => {
+      const open = filtersEl.classList.toggle('mobile-open');
+      mft.textContent = open ? 'Close' : 'Filters';
+    });
+  }
 
   function toggleFullscreen() {
     const d = document;
