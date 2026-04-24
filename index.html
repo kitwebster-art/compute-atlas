@@ -1496,6 +1496,93 @@ window.addEventListener('unhandledrejection', (e) => {
     }
   });
 
+  // --- URL state sync ---
+  // Encode filter/view state in ?state= so reloading + sharing both work.
+  let urlUpdateTimer = null;
+  function snapshotState() {
+    const s = {
+      status: document.getElementById('filterStatus').value,
+      owner:  document.getElementById('filterOwner').value,
+      country: document.getElementById('filterCountry').value,
+      mw: document.getElementById('filterMinMW').value,
+      view: viewMode,
+      size: sizeMode,
+      year: timelineActive ? timelineYear : null,
+    };
+    return s;
+  }
+  function writeUrlState() {
+    if (urlUpdateTimer) clearTimeout(urlUpdateTimer);
+    urlUpdateTimer = setTimeout(() => {
+      const s = snapshotState();
+      const params = new URLSearchParams();
+      if (s.status && s.status !== 'all') params.set('status', s.status);
+      if (s.owner && s.owner !== 'all') params.set('owner', s.owner);
+      if (s.country && s.country !== 'all') params.set('country', s.country);
+      if (s.mw && s.mw !== '0') params.set('mw', s.mw);
+      if (s.view && s.view !== 'points') params.set('view', s.view);
+      if (s.size && s.size !== 'power') params.set('size', s.size);
+      if (s.year !== null) params.set('year', s.year);
+      const qs = params.toString();
+      const newUrl = location.pathname + (qs ? '?' + qs : '') + location.hash;
+      history.replaceState(null, '', newUrl);
+    }, 300);
+  }
+  function readUrlState() {
+    const p = new URLSearchParams(location.search);
+    const apply = (id, val) => {
+      if (val === null || val === undefined) return;
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    };
+    if (p.has('status'))  apply('filterStatus', p.get('status'));
+    if (p.has('country')) apply('filterCountry', p.get('country'));
+    if (p.has('mw'))      apply('filterMinMW', p.get('mw'));
+    // Owner set after options populated (below, after ownerSel populated — done already by this point)
+    if (p.has('owner')) {
+      const ownerEl = document.getElementById('filterOwner');
+      if (ownerEl && Array.from(ownerEl.options).some(o => o.value === p.get('owner'))) {
+        ownerEl.value = p.get('owner');
+      }
+    }
+    if (p.has('view')) {
+      const vb = document.querySelector(`#viewModeToggle button[data-view="${p.get('view')}"]`);
+      if (vb) {
+        document.querySelectorAll('#viewModeToggle button').forEach(b => b.classList.remove('active'));
+        vb.classList.add('active');
+        viewMode = p.get('view');
+      }
+    }
+    if (p.has('size')) {
+      const sb = document.querySelector(`#sizeModeToggle button[data-mode="${p.get('size')}"]`);
+      if (sb) {
+        document.querySelectorAll('#sizeModeToggle button').forEach(b => b.classList.remove('active'));
+        sb.classList.add('active');
+        sizeMode = p.get('size');
+      }
+    }
+    if (p.has('year')) {
+      const y = parseInt(p.get('year'), 10);
+      if (y >= yearMin && y <= yearMax) {
+        slider.value = y;
+        timelineYear = y;
+        timelineActive = y < yearMax;
+        document.getElementById('yearDisplay').textContent = timelineActive ? String(y) : `All · ≤${yearMax}`;
+      }
+    }
+  }
+
+  // Hook state writes into every control change
+  ['filterStatus', 'filterOwner', 'filterCountry', 'filterMinMW'].forEach(id => {
+    document.getElementById(id).addEventListener('change', writeUrlState);
+    document.getElementById(id).addEventListener('input', writeUrlState);
+  });
+  document.querySelectorAll('#viewModeToggle button, #sizeModeToggle button').forEach(b => b.addEventListener('click', writeUrlState));
+  slider.addEventListener('input', writeUrlState);
+
+  // Read any URL state BEFORE initial render
+  readUrlState();
+
   // Initial render
   applyFilters();
 
