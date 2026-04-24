@@ -430,6 +430,19 @@
       font-family: var(--mono); font-size: 14px; color: var(--accent);
       font-weight: 500;
     }
+    .timeline .spark {
+      display: block; width: 100%; height: 34px;
+      margin-bottom: 2px;
+    }
+    .timeline .spark rect { transition: fill 0.15s; }
+    .timeline .spark .bar { fill: rgba(212, 175, 55, 0.25); cursor: pointer; }
+    .timeline .spark .bar:hover { fill: rgba(212, 175, 55, 0.55); }
+    .timeline .spark .bar.active { fill: var(--accent); }
+    .timeline .spark-caption {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-muted); letter-spacing: 0.05em;
+      min-height: 12px; margin-bottom: 2px;
+    }
     .timeline input[type="range"] {
       -webkit-appearance: none; appearance: none;
       width: 100%; height: 4px; background: rgba(255,255,255,0.08);
@@ -737,6 +750,8 @@
       <span>Year</span>
       <span class="year-display" id="yearDisplay">—</span>
     </div>
+    <svg class="spark" id="growthSpark" preserveAspectRatio="none"></svg>
+    <div class="spark-caption" id="sparkCaption">&nbsp;</div>
     <input type="range" id="yearSlider" min="2015" max="2030" step="1" value="2030">
     <div class="slider-row">
       <span id="yearMin">—</span>
@@ -903,6 +918,56 @@ window.addEventListener('unhandledrejection', (e) => {
   document.getElementById('yearMin').textContent = yearMin;
   document.getElementById('yearMax').textContent = yearMax;
   document.getElementById('yearDisplay').textContent = `All · ≤${yearMax}`;
+
+  // --- Growth sparkline (annual MW added by first-operational year) ---
+  const mwAddedByYear = {};
+  for (let y = yearMin; y <= yearMax; y++) mwAddedByYear[y] = 0;
+  for (const r of rows) {
+    if (r.firstOpYear !== null && r.mw) {
+      mwAddedByYear[r.firstOpYear] = (mwAddedByYear[r.firstOpYear] || 0) + r.mw;
+    }
+  }
+  const sparkEl = document.getElementById('growthSpark');
+  const sparkCaption = document.getElementById('sparkCaption');
+  function renderSpark(activeYear) {
+    const years = [];
+    for (let y = yearMin; y <= yearMax; y++) years.push(y);
+    const maxMW = Math.max(1, ...years.map(y => mwAddedByYear[y] || 0));
+    const w = 100 / years.length;
+    const h = 30;
+    sparkEl.setAttribute('viewBox', `0 0 100 ${h + 2}`);
+    sparkEl.innerHTML = years.map((y, i) => {
+      const mw = mwAddedByYear[y] || 0;
+      // sqrt scale so small early years remain visible
+      const bh = mw > 0 ? Math.max(1.2, (Math.sqrt(mw) / Math.sqrt(maxMW)) * h) : 0;
+      const cls = (activeYear != null && y === activeYear) ? 'bar active' : 'bar';
+      return `<rect class="${cls}" data-year="${y}" x="${i * w + 0.25}" y="${h - bh}" width="${w - 0.5}" height="${bh}" rx="0.6" />`;
+    }).join('');
+    // Wire bar clicks to jump the slider
+    sparkEl.querySelectorAll('rect').forEach(rect => {
+      rect.addEventListener('click', () => {
+        const y = +rect.dataset.year;
+        slider.value = y;
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+    updateSparkCaption(activeYear);
+  }
+  function updateSparkCaption(activeYear) {
+    if (activeYear == null || activeYear >= yearMax) {
+      const total = Object.values(mwAddedByYear).reduce((a, b) => a + b, 0);
+      sparkCaption.textContent = `All-time ${fmtMwCompact(total)} added · click a bar to jump`;
+    } else {
+      const mw = mwAddedByYear[activeYear] || 0;
+      sparkCaption.textContent = `${activeYear}: ${fmtMwCompact(mw)} added`;
+    }
+  }
+  function fmtMwCompact(mw) {
+    if (!mw) return '0 MW';
+    if (mw >= 1000) return `${(mw / 1000).toFixed(mw >= 10000 ? 1 : 2)} GW`;
+    return `${Math.round(mw)} MW`;
+  }
+  renderSpark(null);
 
   // Populate filters
   const ownerSel = document.getElementById('filterOwner');
@@ -1254,6 +1319,7 @@ window.addEventListener('unhandledrejection', (e) => {
     timelineYear = parseInt(slider.value, 10);
     timelineActive = (timelineYear < yearMax);
     yearDisp.textContent = timelineActive ? String(timelineYear) : `All · ≤${yearMax}`;
+    renderSpark(timelineYear);
     applyFilters();
   });
 
@@ -1280,6 +1346,7 @@ window.addEventListener('unhandledrejection', (e) => {
       timelineActive = (timelineYear < yearMax);
       slider.value = timelineYear;
       yearDisp.textContent = timelineActive ? String(timelineYear) : `All · ≤${yearMax}`;
+      renderSpark(timelineYear);
       applyFilters();
     }, stepMs);
   });
