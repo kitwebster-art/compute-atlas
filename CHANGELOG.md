@@ -40,6 +40,43 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `b189f2c` · Embed mode (`?embed=1`) + iframe snippet
+
+Add `?embed=1` to the URL to hide the masthead, filter sidebar,
+leaderboard, timeline, and search — leaving just the globe with a small
+legend, a compact footer and a "FLOP MAP → open full" badge top-left that
+links back to the full site. Embed mode is chrome-light and iframe-ready.
+
+The About modal now contains the exact `<iframe>` snippet ready for
+journalists/bloggers to paste into their CMS, with a one-click Copy
+button.
+
+**Test:** open `/?embed=1` on the live site, or click About → Copy in
+the embed code section and paste into a Medium / Substack draft.
+
+**Revert:** `git revert b189f2c`
+
+---
+
+### `0e538fa` · About modal
+
+Added an "About" link to the footer (next to "Press ?"). Clicking it
+opens a modal with:
+
+- What FLOP Map is and the Epoch AI data behind it (691 clusters,
+  ~55 GW, ~79M H100-eq)
+- How it works (dots, click-for-specs, filter, pin-to-compare)
+- Data caveats (253 anonymised Chinese clusters sharing one centroid,
+  missing FLOP/s on planned sites)
+- Credits (Kit Webster, Globe.gl, Epoch AI, GitHub)
+
+Closes with Esc or a backdrop click. Gives new visitors landing from
+social shares immediate context without cluttering the main UI.
+
+**Revert:** `git revert 0e538fa`
+
+---
+
 ### `9f5a8fc` · Mobile polish
 
 Tightened the mobile layout (<800px viewport):
