@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Frontier models layer + "Trained here" in cluster detail
+### `f4d411c` · Frontier models layer + "Trained here" in cluster detail
 
 The killer feature for SEO + share-ability: a curated list of 16 frontier
 AI models linked to the clusters that trained them.
@@ -67,7 +67,7 @@ GPT-5, Grok 3, Grok 4, Llama 3.1, Llama 4, Claude Opus 4.x, Mistral
 Large, Pangu Ultra MoE, Qwen, Tesla FSD v13, LLaMA, Code Llama. List
 is hand-curated and easy to extend.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert f4d411c`
 
 ---
 
