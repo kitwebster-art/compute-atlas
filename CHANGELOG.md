@@ -40,14 +40,14 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Hover sparkline bars to preview year stats
+### `3e170f2` · Hover sparkline bars to preview year stats
 
 The growth sparkline (timeline) now updates the caption on hover, not
 just click. Hovering a bar shows "{year}: {MW} added · {YoY %}" without
 moving the slider; mouse-leave restores the all-time caption. Native
 SVG `<title>` tooltips also added per bar for browsers that show them.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 3e170f2`
 
 ---
 
