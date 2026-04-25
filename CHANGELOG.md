@@ -40,6 +40,25 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Hide Google Maps link when location is undisclosed
+
+Epoch's CSV uses **country-centroid coordinates** as a placeholder when
+the exact site isn't public — e.g. "Meta 100k" and "Oracle OCI Supercluster"
+both list lat=39.381266, lng=-97.922211 (the geographic centre of the
+contiguous US, in a Kansas field). Clicking "Open in Google Maps" landed
+users in random farmland.
+
+Now we only show the Maps link when `location` is specific (not empty,
+not just the country name). Confirmed sites like "3231 Riverport Rd,
+Memphis, TN" still get a working link — and we now use the address
+string as the search query rather than raw coords (more reliable). For
+undisclosed sites the link is replaced with a dimmed
+"Map link unavailable · location undisclosed" line.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `3e170f2` · Hover sparkline bars to preview year stats
 
 The growth sparkline (timeline) now updates the caption on hover, not

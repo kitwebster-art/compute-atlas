@@ -451,6 +451,13 @@
       text-transform: uppercase; font-weight: 600;
       transition: all 0.15s;
     }
+    .detail-panel .link-btn-disabled {
+      display: inline-block; margin-top: 10px;
+      font-size: 10px; color: var(--text-muted);
+      padding: 5px 10px; border: 1px dashed var(--border);
+      border-radius: 4px; letter-spacing: 0.12em;
+      text-transform: uppercase; cursor: help;
+    }
     .detail-panel .link-btn:hover {
       background: rgba(212, 175, 55, 0.1); color: var(--accent);
     }
@@ -1914,7 +1921,16 @@ window.addEventListener('unhandledrejection', (e) => {
       d.chipType2 && (d.chipType2 + (d.chipQty2 ? ` × ${fmtNum(d.chipQty2)}` : ''))
     ].filter(Boolean).join(' + ');
 
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}`;
+    // Only show Maps link when the location is specific.
+    // Epoch falls back to country-centroid coords when the exact site isn't public,
+    // and in those cases `location` is empty or equals the country name — link
+    // would land in random farmland, so we hide it.
+    const locTrim = (d.location || '').trim();
+    const countryTrim = (d.country || '').trim();
+    const locIsSpecific = locTrim && locTrim.toLowerCase() !== countryTrim.toLowerCase();
+    // Prefer the location string for the Maps query (more reliable for confirmed addresses)
+    const mapsQuery = locIsSpecific ? locTrim : `${d.lat},${d.lng}`;
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
 
     panelContent.innerHTML = `
       <span class="status-pill ${statusClass}">${escapeHtml(d.status || 'Unknown')}</span>
@@ -1977,7 +1993,7 @@ window.addEventListener('unhandledrejection', (e) => {
         ${d.decommissioned ? `<div class="spec-row"><span class="label">Decommissioned</span><span class="value">${escapeHtml(d.decommissioned)}</span></div>` : ''}
         ${d.buildsUpon ? `<div class="spec-row"><span class="label">Builds upon</span><span class="value">${escapeHtml(d.buildsUpon)}</span></div>` : ''}
         ${d.supersededBy ? `<div class="spec-row"><span class="label">Superseded by</span><span class="value">${escapeHtml(d.supersededBy)}</span></div>` : ''}
-        <a href="${googleMapsUrl}" target="_blank" rel="noopener" class="link-btn">Open in Google Maps ↗</a>
+        ${locIsSpecific ? `<a href="${googleMapsUrl}" target="_blank" rel="noopener" class="link-btn">Open in Google Maps ↗</a>` : `<div class="link-btn-disabled" title="Epoch lists this cluster at country-centroid coordinates — exact site isn't public, so the map link is hidden to avoid landing in random farmland.">Map link unavailable · location undisclosed</div>`}
       </div>
 
       ${d.note || d.quote || (d.noteworthy && !/^(true|yes|y|no|n|false)$/i.test(d.noteworthy.trim())) ? `
