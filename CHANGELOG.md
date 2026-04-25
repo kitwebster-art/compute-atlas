@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Auto-promote MW totals to GW in breakdowns
+### `2a96bf5` · Auto-promote MW totals to GW in breakdowns
 
 The leaderboard, chip-vendor breakdown, and country breakdown all displayed
 totals like "8.6k", "14.9k", "31.3k" under an "MW" header — values that
@@ -48,7 +48,7 @@ should obviously read as GW. Now any total ≥ 1000 MW renders as GW
 (e.g. "8.80 GW", "14.9 GW", "33.0 GW") and the unit header reads
 "MW / GW" so you know the column auto-scales. H100-eq mode unchanged.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 2a96bf5`
 
 ---
 
