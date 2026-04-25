@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Status mix bar (live vs planned vs other)
+### `8661785` · Status mix bar (live vs planned vs other)
 
 Under the cluster count and totals strip in the top-right, a small
 stacked bar now shows what fraction of the visible total power is
@@ -49,7 +49,7 @@ tiny legend showing the percentages. Surfaces the central narrative
 of the dataset at a glance: at the global default ≈ 5% of tracked
 compute is online, ≈ 95% is planned. Updates live with filters.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 8661785`
 
 ---
 
