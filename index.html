@@ -299,6 +299,18 @@
       color: var(--accent); border-color: var(--accent);
       background: rgba(212, 175, 55, 0.06);
     }
+    .share-btn {
+      padding: 7px 12px; font-size: 11px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); cursor: pointer;
+      font-family: inherit; text-decoration: none;
+      letter-spacing: 0.05em; transition: all 0.15s;
+      display: inline-flex; align-items: center;
+    }
+    .share-btn:hover {
+      color: var(--accent); border-color: var(--accent);
+      background: rgba(212, 175, 55, 0.06);
+    }
 
     /* Detail panel */
     .detail-panel {
@@ -1006,6 +1018,14 @@
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
       <code id="embedCode" style="flex:1;font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:8px 10px;border-radius:6px;overflow-x:auto;white-space:nowrap;">&lt;iframe src="https://flopmap.com/?embed=1" width="100%" height="600" style="border:0;border-radius:10px;"&gt;&lt;/iframe&gt;</code>
       <button id="copyEmbed" class="action-btn" style="flex-shrink:0;">Copy</button>
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Share</div>
+    <div class="share-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <a id="shareTwitter" class="share-btn" target="_blank" rel="noopener" href="#">Post on X</a>
+      <a id="shareLinkedIn" class="share-btn" target="_blank" rel="noopener" href="#">LinkedIn</a>
+      <a id="shareReddit" class="share-btn" target="_blank" rel="noopener" href="#">Reddit</a>
+      <a id="shareHN" class="share-btn" target="_blank" rel="noopener" href="#">Hacker News</a>
+      <button id="shareCopy" class="share-btn" type="button">Copy link</button>
     </div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Credits</div>
     <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
@@ -2289,6 +2309,27 @@ window.addEventListener('unhandledrejection', (e) => {
       const prev = copyEmbed.textContent;
       copyEmbed.textContent = 'Copied';
       setTimeout(() => { copyEmbed.textContent = prev; }, 1500);
+    }).catch(() => {});
+  });
+
+  const shareUrl = 'https://flopmap.com';
+  const shareTitle = 'FLOP Map — the world\u2019s AI compute, mapped';
+  const shareBlurb = 'FLOP Map: a live 3D map of every known AI compute cluster on earth. ~55 GW \u00b7 ~79M H100-equivalents \u00b7 691 sites. Public data, open source.';
+  const enc = encodeURIComponent;
+  const tw = document.getElementById('shareTwitter');
+  if (tw) tw.href = `https://twitter.com/intent/tweet?text=${enc(shareBlurb)}&url=${enc(shareUrl)}`;
+  const li = document.getElementById('shareLinkedIn');
+  if (li) li.href = `https://www.linkedin.com/sharing/share-offsite/?url=${enc(shareUrl)}`;
+  const rd = document.getElementById('shareReddit');
+  if (rd) rd.href = `https://reddit.com/submit?url=${enc(shareUrl)}&title=${enc(shareTitle)}`;
+  const hn = document.getElementById('shareHN');
+  if (hn) hn.href = `https://news.ycombinator.com/submitlink?u=${enc(shareUrl)}&t=${enc(shareTitle)}`;
+  const sc = document.getElementById('shareCopy');
+  sc?.addEventListener('click', () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      const prev = sc.textContent;
+      sc.textContent = 'Link copied';
+      setTimeout(() => { sc.textContent = prev; }, 1500);
     }).catch(() => {});
   });
 

@@ -40,6 +40,19 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Share buttons in About modal
+
+X (Twitter), LinkedIn, Reddit, Hacker News, plus a "Copy link" fallback —
+all wired to platform-specific intent URLs with a launch-ready blurb
+("FLOP Map: a live 3D map of every known AI compute cluster on earth.
+~55 GW · ~79M H100-equivalents · 691 sites. Public data, open source.").
+Lives under a new "Share" section in the About modal alongside the
+existing embed snippet.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `2a96bf5` · Auto-promote MW totals to GW in breakdowns
 
 The leaderboard, chip-vendor breakdown, and country breakdown all displayed
