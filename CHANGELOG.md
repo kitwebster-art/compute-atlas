@@ -40,6 +40,21 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Bake attribution + headline stats into PNG snapshots
+
+The Save PNG button now composites the globe onto a 2D canvas and overlays:
+
+- top-left: gold "FLOP MAP" wordmark + live "{n} clusters · {GW} · {H100-eq}"
+  matching the current filtered view
+- bottom-right: "flopmap.com · data: Epoch AI (CC BY) · by Kit Webster"
+
+Every shared screenshot now carries the source and the headline stat, so
+press / social posts can't lose the attribution.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `2856602` · Save PNG snapshot of current globe view
 
 New "Save PNG" button in the action row (next to Surprise me / Export CSV).

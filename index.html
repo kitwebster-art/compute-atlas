@@ -2609,7 +2609,33 @@ window.addEventListener('unhandledrejection', (e) => {
       const scene = world.scene();
       const camera = world.camera();
       renderer.render(scene, camera);
-      const dataUrl = renderer.domElement.toDataURL('image/png');
+      const src = renderer.domElement;
+      // Composite onto a 2D canvas so we can bake in attribution + headline stats
+      const out = document.createElement('canvas');
+      out.width = src.width;
+      out.height = src.height;
+      const ctx = out.getContext('2d');
+      ctx.drawImage(src, 0, 0);
+      // Headline stats from the totals bar — read live so they reflect current filters
+      const visible = window._filtered || rows;
+      const totalMW = visible.reduce((s, r) => s + (r.mw || 0), 0);
+      const totalH100 = visible.reduce((s, r) => s + (r.h100 || 0), 0);
+      const headline = `${visible.length} clusters · ${totalMW >= 1000 ? (totalMW/1000).toFixed(1)+' GW' : Math.round(totalMW)+' MW'} · ${fmtNum(totalH100)} H100-eq`;
+      // Top-left wordmark
+      ctx.fillStyle = '#d4af37';
+      ctx.font = '600 13px Inter, system-ui, sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.fillText('FLOP MAP', 24, 24);
+      ctx.fillStyle = 'rgba(232,232,236,0.85)';
+      ctx.font = '11px Inter, system-ui, sans-serif';
+      ctx.fillText(headline, 24, 44);
+      // Bottom-right attribution
+      ctx.font = '10px Inter, system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(232,232,236,0.55)';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('flopmap.com  ·  data: Epoch AI (CC BY)  ·  by Kit Webster', src.width - 24, src.height - 18);
+      const dataUrl = out.toDataURL('image/png');
       const a = document.createElement('a');
       const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
       a.href = dataUrl;
