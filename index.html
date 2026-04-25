@@ -79,7 +79,8 @@
       display: flex; gap: 1px; border-radius: 2px; overflow: hidden;
       background: rgba(255,255,255,0.04);
     }
-    .counter .status-mix .seg { height: 100%; transition: width 0.25s ease; }
+    .counter .status-mix .seg { height: 100%; transition: width 0.25s ease, opacity 0.15s ease; cursor: pointer; pointer-events: auto; }
+    .counter .status-mix .seg:hover { opacity: 0.7; }
     .counter .status-mix .seg.op { background: #4ad188; }
     .counter .status-mix .seg.pl { background: #6c8cc4; }
     .counter .status-mix .seg.ot { background: #5a6068; }
@@ -1619,22 +1620,40 @@ window.addEventListener('unhandledrejection', (e) => {
     const fmt = mw => mw >= 1000 ? (mw / 1000).toFixed(1) + ' GW' : Math.round(mw) + ' MW';
     const opP = (op / tot * 100), plP = (pl / tot * 100), otP = (ot / tot * 100);
     el.innerHTML = `
-      <div class="seg op" style="width:${opP.toFixed(2)}%" title="Live (Existing): ${fmt(op)} (${opP.toFixed(0)}%)"></div>
-      <div class="seg pl" style="width:${plP.toFixed(2)}%" title="Planned: ${fmt(pl)} (${plP.toFixed(0)}%)"></div>
-      <div class="seg ot" style="width:${otP.toFixed(2)}%" title="Decommissioned / other: ${fmt(ot)} (${otP.toFixed(0)}%)"></div>
+      <div class="seg op" data-status="Existing" style="width:${opP.toFixed(2)}%" title="Click to filter: Live (Existing) — ${fmt(op)} (${opP.toFixed(0)}%)"></div>
+      <div class="seg pl" data-status="Planned" style="width:${plP.toFixed(2)}%" title="Click to filter: Planned — ${fmt(pl)} (${plP.toFixed(0)}%)"></div>
+      <div class="seg ot" data-status="other" style="width:${otP.toFixed(2)}%" title="Decommissioned / other — ${fmt(ot)} (${otP.toFixed(0)}%)"></div>
     `;
+    el.querySelectorAll('.seg[data-status]').forEach(seg => {
+      seg.addEventListener('click', () => {
+        const target = seg.dataset.status;
+        const sel = document.getElementById('filterStatus');
+        if (!sel) return;
+        sel.value = (sel.value === target) ? 'all' : target;
+        applyFilters();
+      });
+    });
     let legend = el.nextElementSibling;
     if (!legend || !legend.classList.contains('status-mix-legend')) {
       legend = document.createElement('div');
       legend.className = 'status-mix-legend';
       el.parentNode.insertBefore(legend, el.nextSibling);
     }
-    const otHtml = otP > 0.5 ? `<span><i style="background:#5a6068"></i>${otP.toFixed(0)}% other</span>` : '';
+    const otHtml = otP > 0.5 ? `<span data-status="other" title="Filter: decommissioned / other"><i style="background:#5a6068"></i>${otP.toFixed(0)}% other</span>` : '';
     legend.innerHTML = `
-      <span><i style="background:#4ad188"></i>${opP.toFixed(0)}% live</span>
-      <span><i style="background:#6c8cc4"></i>${plP.toFixed(0)}% planned</span>
+      <span data-status="Existing" title="Filter: only live (operational) clusters"><i style="background:#4ad188"></i>${opP.toFixed(0)}% live</span>
+      <span data-status="Planned" title="Filter: only planned clusters"><i style="background:#6c8cc4"></i>${plP.toFixed(0)}% planned</span>
       ${otHtml}
     `;
+    legend.querySelectorAll('span[data-status]').forEach(s => {
+      s.style.cursor = 'pointer';
+      s.addEventListener('click', () => {
+        const sel = document.getElementById('filterStatus');
+        if (!sel) return;
+        sel.value = (sel.value === s.dataset.status) ? 'all' : s.dataset.status;
+        applyFilters();
+      });
+    });
   }
 
   // Leaderboard — top operators by current weight mode
