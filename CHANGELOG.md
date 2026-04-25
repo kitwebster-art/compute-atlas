@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Share buttons in About modal
+### `4015c7d` · Share buttons in About modal
 
 X (Twitter), LinkedIn, Reddit, Hacker News, plus a "Copy link" fallback —
 all wired to platform-specific intent URLs with a launch-ready blurb
@@ -49,7 +49,7 @@ all wired to platform-specific intent URLs with a launch-ready blurb
 Lives under a new "Share" section in the About modal alongside the
 existing embed snippet.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 4015c7d`
 
 ---
 
