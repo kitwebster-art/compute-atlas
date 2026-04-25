@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Hide Google Maps link when location is undisclosed
+### `c5cfbbe` · Hide Google Maps link when location is undisclosed
 
 Epoch's CSV uses **country-centroid coordinates** as a placeholder when
 the exact site isn't public — e.g. "Meta 100k" and "Oracle OCI Supercluster"
@@ -55,7 +55,7 @@ string as the search query rather than raw coords (more reliable). For
 undisclosed sites the link is replaced with a dimmed
 "Map link unavailable · location undisclosed" line.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert c5cfbbe`
 
 ---
 
