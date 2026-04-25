@@ -40,6 +40,18 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Save PNG snapshot of current globe view
+
+New "Save PNG" button in the action row (next to Surprise me / Export CSV).
+Captures the globe canvas exactly as currently rendered — view angle, view
+mode, filters, all preserved — and downloads it as a 1280×800 PNG with a
+date-stamped filename. Useful for press, social posts, decks. Required
+flipping Globe.gl's WebGL renderer to preserveDrawingBuffer:true.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `4015c7d` · Share buttons in About modal
 
 X (Twitter), LinkedIn, Reddit, Hacker News, plus a "Copy link" fallback —

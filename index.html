@@ -920,6 +920,7 @@
   <div class="filter-row" style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;">
     <button id="btnSurprise" class="action-btn" title="Random notable cluster (S)">Surprise me</button>
     <button id="btnExport" class="action-btn" title="Download filtered CSV">Export CSV</button>
+    <button id="btnSnapshot" class="action-btn" title="Save current globe as PNG">Save PNG</button>
     <button id="btnShareView" class="action-btn" title="Copy shareable link to this view" style="flex-basis:100%;">Share this view</button>
   </div>
 </aside>
@@ -1314,7 +1315,7 @@ window.addEventListener('unhandledrejection', (e) => {
     throw new Error('Globe.gl library failed to load. Check your network connection.');
   }
 
-  const world = window._world = Globe()(container)
+  const world = window._world = Globe({ rendererConfig: { preserveDrawingBuffer: true, antialias: true, alpha: true } })(container)
     .backgroundColor('#05070d')
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
     .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
@@ -2598,6 +2599,30 @@ window.addEventListener('unhandledrejection', (e) => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btnSnapshot').addEventListener('click', () => {
+    const btn = document.getElementById('btnSnapshot');
+    const orig = btn.textContent;
+    try {
+      const renderer = world.renderer();
+      const scene = world.scene();
+      const camera = world.camera();
+      renderer.render(scene, camera);
+      const dataUrl = renderer.domElement.toDataURL('image/png');
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      a.href = dataUrl;
+      a.download = `flopmap-${stamp}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      btn.textContent = 'Saved ✓';
+    } catch (err) {
+      console.error('snapshot failed', err);
+      btn.textContent = 'Failed';
+    }
+    setTimeout(() => { btn.textContent = orig; }, 1500);
   });
 
   // Read any URL state BEFORE initial render
