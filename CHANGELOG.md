@@ -40,6 +40,19 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Context-aware share blurbs
+
+The X / Reddit / HN share buttons now build their text from the live
+filter state. Default view → "FLOP Map: a live 3D map of every known
+AI compute cluster on earth..." Filtered to e.g. China + live →
+"FLOP Map (China live): 23 clusters · 1.4 GW · 350k H100-eq." The
+shared link itself is the current URL (URLSearchParams-based filter
+state is already preserved), so recipients land on the same view.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `231d193` · Click status mix to filter
 
 Both the segments and the legend pills under the masthead status-mix

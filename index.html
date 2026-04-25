@@ -2388,21 +2388,52 @@ window.addEventListener('unhandledrejection', (e) => {
     }).catch(() => {});
   });
 
-  const shareUrl = 'https://flopmap.com';
-  const shareTitle = 'FLOP Map — the world\u2019s AI compute, mapped';
-  const shareBlurb = 'FLOP Map: a live 3D map of every known AI compute cluster on earth. ~55 GW \u00b7 ~79M H100-equivalents \u00b7 691 sites. Public data, open source.';
   const enc = encodeURIComponent;
-  const tw = document.getElementById('shareTwitter');
-  if (tw) tw.href = `https://twitter.com/intent/tweet?text=${enc(shareBlurb)}&url=${enc(shareUrl)}`;
-  const li = document.getElementById('shareLinkedIn');
-  if (li) li.href = `https://www.linkedin.com/sharing/share-offsite/?url=${enc(shareUrl)}`;
-  const rd = document.getElementById('shareReddit');
-  if (rd) rd.href = `https://reddit.com/submit?url=${enc(shareUrl)}&title=${enc(shareTitle)}`;
-  const hn = document.getElementById('shareHN');
-  if (hn) hn.href = `https://news.ycombinator.com/submitlink?u=${enc(shareUrl)}&t=${enc(shareTitle)}`;
+  function buildShareContext() {
+    // Use the current URL (with filter state) so the recipient lands on what the sharer sees
+    const url = location.href;
+    const visible = window._filtered || rows;
+    const totalMW = visible.reduce((s, r) => s + (r.mw || 0), 0);
+    const totalH100 = visible.reduce((s, r) => s + (r.h100 || 0), 0);
+    const status = document.getElementById('filterStatus')?.value;
+    const owner = document.getElementById('filterOwner')?.value;
+    const country = document.getElementById('filterCountry')?.value;
+    let scope = '';
+    if (country && country !== 'all') scope = country + ' ';
+    else if (owner && owner !== 'all') scope = owner + ' ';
+    if (status && status !== 'all') {
+      const word = /exist/i.test(status) ? 'live' : status.toLowerCase();
+      scope += word + ' ';
+    }
+    scope = scope.trim() || 'global';
+    const powerStr = totalMW >= 1000 ? (totalMW / 1000).toFixed(1) + ' GW' : Math.round(totalMW) + ' MW';
+    const h100Str = totalH100 >= 1e6 ? (totalH100 / 1e6).toFixed(1) + 'M' : totalH100 >= 1e3 ? (totalH100 / 1e3).toFixed(0) + 'k' : Math.round(totalH100);
+    const isDefault = scope === 'global' && visible.length >= 600;
+    const blurb = isDefault
+      ? `FLOP Map: a live 3D map of every known AI compute cluster on earth. ~55 GW · ~79M H100-equivalents · 691 sites. Public data, open source.`
+      : `FLOP Map (${scope}): ${visible.length} clusters · ${powerStr} · ${h100Str} H100-eq.`;
+    const title = `FLOP Map — ${scope === 'global' ? 'the world\u2019s AI compute, mapped' : scope + ' AI compute'}`;
+    return { url, blurb, title };
+  }
+  function refreshShareLinks() {
+    const { url, blurb, title } = buildShareContext();
+    const tw = document.getElementById('shareTwitter');
+    if (tw) tw.href = `https://twitter.com/intent/tweet?text=${enc(blurb)}&url=${enc(url)}`;
+    const li = document.getElementById('shareLinkedIn');
+    if (li) li.href = `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`;
+    const rd = document.getElementById('shareReddit');
+    if (rd) rd.href = `https://reddit.com/submit?url=${enc(url)}&title=${enc(title)}`;
+    const hn = document.getElementById('shareHN');
+    if (hn) hn.href = `https://news.ycombinator.com/submitlink?u=${enc(url)}&t=${enc(title)}`;
+  }
+  // Refresh whenever About modal is opened so the links reflect the current filter state
+  const aboutLinkForShare = document.getElementById('aboutLink');
+  aboutLinkForShare?.addEventListener('click', () => setTimeout(refreshShareLinks, 0));
+  refreshShareLinks();
   const sc = document.getElementById('shareCopy');
   sc?.addEventListener('click', () => {
-    navigator.clipboard.writeText(shareUrl).then(() => {
+    refreshShareLinks();
+    navigator.clipboard.writeText(location.href).then(() => {
       const prev = sc.textContent;
       sc.textContent = 'Link copied';
       setTimeout(() => { sc.textContent = prev; }, 1500);
