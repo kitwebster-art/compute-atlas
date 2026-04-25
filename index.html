@@ -451,6 +451,44 @@
       text-transform: uppercase; font-weight: 600;
       transition: all 0.15s;
     }
+    .detail-panel .model-chip-row {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
+    }
+    .detail-panel .model-chip {
+      background: rgba(212, 175, 55, 0.08);
+      border: 1px solid rgba(212, 175, 55, 0.32);
+      color: var(--text); cursor: pointer;
+      padding: 5px 9px; font-size: 11px;
+      border-radius: 4px; font-family: inherit;
+      transition: all 0.15s; text-align: left;
+    }
+    .detail-panel .model-chip:hover {
+      background: rgba(212, 175, 55, 0.18);
+      border-color: var(--accent); color: var(--accent);
+    }
+    .detail-panel .model-chip .org {
+      color: var(--text-muted); font-size: 9px;
+      margin-left: 4px; letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .detail-panel .model-cluster-list {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .detail-panel .model-cluster-row {
+      padding: 8px 10px; border: 1px solid var(--border);
+      border-radius: 5px; cursor: pointer;
+      transition: all 0.15s; background: rgba(255,255,255,0.015);
+    }
+    .detail-panel .model-cluster-row:hover {
+      border-color: var(--accent);
+      background: rgba(212, 175, 55, 0.06);
+    }
+    .detail-panel .model-cluster-row .name {
+      font-size: 12px; color: var(--text); margin-bottom: 2px;
+    }
+    .detail-panel .model-cluster-row .meta {
+      font-size: 10px; color: var(--text-muted); font-family: var(--mono);
+    }
     .detail-panel .link-btn-disabled {
       display: inline-block; margin-top: 10px;
       font-size: 10px; color: var(--text-muted);
@@ -651,6 +689,31 @@
     }
     .legend-item:hover { background: rgba(212, 175, 55, 0.06); }
     .legend-item.muted { opacity: 0.3; }
+    .legend-models {
+      display: flex; flex-direction: column; gap: 3px;
+      max-height: 280px; overflow-y: auto; margin-top: 4px;
+    }
+    .legend-model-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 6px; border-radius: 4px; cursor: pointer;
+      font-size: 11px; color: var(--text);
+      transition: all 0.12s;
+    }
+    .legend-model-row:hover {
+      background: rgba(212, 175, 55, 0.08);
+      color: var(--accent);
+    }
+    .legend-model-row .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0;
+    }
+    .legend-model-row .name {
+      flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .legend-model-row .org {
+      font-size: 9px; color: var(--text-muted);
+      letter-spacing: 0.05em; flex-shrink: 0;
+    }
     .legend-dot {
       width: 10px; height: 10px; border-radius: 50%;
       box-shadow: 0 0 6px currentColor;
@@ -934,6 +997,7 @@
       <button data-view="points" class="active">Points</button>
       <button data-view="heatmap">Heatmap</button>
       <button data-view="hex">Hex bins</button>
+      <button data-view="models" title="Show frontier AI models on the globe at the clusters that trained them">Models ★</button>
     </div>
   </div>
   <div class="filter-row">
@@ -1201,6 +1265,134 @@ window.addEventListener('unhandledrejection', (e) => {
   }).filter(Boolean);
 
   console.log(`Loaded ${rows.length} compute clusters`);
+
+  // ─────────────────────────────────────────────────────────────────────
+  //  FRONTIER MODELS — curated list of notable AI models linked to the
+  //  clusters that trained them. Where a cluster name explicitly references
+  //  a model (e.g. "Gemini 1.0 Ultra training cluster A") the link is direct.
+  //  Otherwise we use publicly disclosed pairings (Musk, Meta papers, etc).
+  //  Add to this list to surface more models.
+  // ─────────────────────────────────────────────────────────────────────
+  const FRONTIER_MODELS = [
+    // ── Google DeepMind ──
+    { id: 'gemini-1-ultra', name: 'Gemini 1.0 Ultra', org: 'Google DeepMind', year: 2023,
+      params: '~1.6T MoE (rumoured)', trainingFLOP: 5e25,
+      clusterMatches: ['Gemini 1.0 Ultra training cluster A', 'Gemini 1.0 Ultra training cluster B'],
+      note: 'Released Dec 2023. Trained on Google TPU v4 across two clusters.',
+      sources: ['https://deepmind.google/technologies/gemini/'] },
+    { id: 'gemini-2', name: 'Gemini 2.0 / 2.5', org: 'Google DeepMind', year: 2025,
+      params: 'MoE (undisclosed)', trainingFLOP: 1.5e26,
+      clusterMatches: ['Google Oklahoma TPU', 'Google Hypercomputer TPU', 'Google A3 VMs'],
+      note: 'Trained on Google TPU v5p / Trillium across multiple sites.',
+      sources: ['https://deepmind.google/technologies/gemini/'] },
+
+    // ── OpenAI / Microsoft ──
+    { id: 'gpt-4', name: 'GPT-4', org: 'OpenAI', year: 2023,
+      params: '~1.8T MoE (rumoured)', trainingFLOP: 2.1e25,
+      clusterMatches: ['OpenAI/Microsoft Goodyear Arizona'],
+      note: 'Released March 2023. Trained on Microsoft Azure A100 supercluster (~25k A100s).',
+      sources: ['https://openai.com/research/gpt-4'] },
+    { id: 'gpt-4o', name: 'GPT-4o / GPT-4 Turbo', org: 'OpenAI', year: 2024,
+      trainingFLOP: 3.8e25,
+      clusterMatches: ['OpenAI/Microsoft Goodyear Arizona', 'OpenAI/Microsoft Mt Pleasant', 'OpenAI/Microsoft Atlanta'],
+      note: 'Multimodal flagship. Trained on Azure H100 clusters across multiple sites.',
+      sources: ['https://openai.com/'] },
+    { id: 'gpt-5', name: 'GPT-5', org: 'OpenAI', year: 2025,
+      trainingFLOP: 1e26,
+      clusterMatches: ['OpenAI Stargate Abilene', 'OpenAI/Microsoft Atlanta', 'OpenAI/Microsoft Mt Pleasant'],
+      note: 'Trained across Stargate Abilene (Oracle) and Microsoft H200 clusters.',
+      sources: ['https://openai.com/'] },
+
+    // ── xAI ──
+    { id: 'grok-3', name: 'Grok 3', org: 'xAI', year: 2025,
+      params: '~2.7T (rumoured)', trainingFLOP: 4e25,
+      clusterMatches: ['xAI Colossus Memphis Phase 1'],
+      note: 'Released Feb 2025. Trained on the 100k-H100 Colossus cluster in Memphis.',
+      sources: ['https://x.ai/grok'] },
+    { id: 'grok-4', name: 'Grok 4', org: 'xAI', year: 2025,
+      trainingFLOP: 8e25,
+      clusterMatches: ['xAI Colossus Memphis Phase 2', 'xAI Colossus Memphis Phase 3'],
+      note: 'Released July 2025. Trained on Colossus expansion (200k+ H100/H200).',
+      sources: ['https://x.ai/grok'] },
+
+    // ── Meta ──
+    { id: 'llama-3-1', name: 'Llama 3.1 (405B)', org: 'Meta AI', year: 2024,
+      params: '405B (open-weights)', trainingFLOP: 3.8e25,
+      clusterMatches: ['Paper on Llama 3.1', 'Meta GenAI 2024a', 'Meta GenAI 2024b'],
+      note: 'Largest open-weights model at release. Trained on Meta GenAI clusters (~25k H100 each).',
+      sources: ['https://ai.meta.com/research/publications/the-llama-3-herd-of-models/'] },
+    { id: 'llama-4', name: 'Llama 4 (Behemoth)', org: 'Meta AI', year: 2025,
+      params: '~2T MoE', trainingFLOP: 1e26,
+      clusterMatches: ['Meta Prometheus New Albany', 'Meta 100k', 'Meta Louisiana Datacenter'],
+      note: 'Meta’s 2T MoE flagship. Trained on the expanded GenAI infrastructure.',
+      sources: ['https://ai.meta.com/'] },
+
+    // ── Anthropic (no own clusters; rents AWS Trainium / Google TPU) ──
+    { id: 'claude-opus-4', name: 'Claude Opus 4.5/4.7', org: 'Anthropic', year: 2025,
+      trainingFLOP: 1.2e26,
+      clusterMatches: [],
+      note: 'Trained on AWS Trainium2 + Google TPU clusters (no Anthropic-owned sites in dataset).',
+      sources: ['https://www.anthropic.com/'] },
+
+    // ── Mistral ──
+    { id: 'mistral-large', name: 'Mistral Large', org: 'Mistral AI', year: 2024,
+      trainingFLOP: 2e25,
+      clusterMatches: ['Mistral Large Model Implied Cluster'],
+      note: 'French frontier flagship. Trained on rented infrastructure.',
+      sources: ['https://mistral.ai/news/mistral-large/'] },
+
+    // ── Huawei ──
+    { id: 'pangu-ultra', name: 'Pangu Ultra MoE', org: 'Huawei', year: 2025,
+      trainingFLOP: 1.5e25,
+      clusterMatches: ['Huawei Pangu Ultra MoE'],
+      note: 'Trained entirely on Huawei Ascend 910B — China’s domestic alternative to NVIDIA.',
+      sources: ['https://arxiv.org/abs/2505.04519'] },
+
+    // ── Alibaba ──
+    { id: 'qwen', name: 'Qwen 2.5 / 3', org: 'Alibaba', year: 2024,
+      params: '72B (open-weights)', trainingFLOP: 1.2e25,
+      clusterMatches: ['Alibaba'],
+      note: 'Open-weights frontier model family from Alibaba.',
+      sources: ['https://qwen.ai/'] },
+
+    // ── Tesla ──
+    { id: 'tesla-fsd-v13', name: 'Tesla FSD v13', org: 'Tesla', year: 2024,
+      trainingFLOP: 1e25,
+      clusterMatches: ['Tesla Cortex Phase 1', 'Tesla Cortex Phase 2', 'Tesla 10k H100', 'Tesla Earnings Call'],
+      note: 'Self-driving model. Trained on Cortex GPU cluster in Texas.',
+      sources: ['https://www.tesla.com/AI'] },
+
+    // ── earlier models for historical depth ──
+    { id: 'llama-1', name: 'LLaMA (original)', org: 'Meta AI', year: 2023,
+      params: '65B', trainingFLOP: 5e23,
+      clusterMatches: ['Paper on LLaMA'],
+      note: 'Feb 2023 release that kicked off open-weights era.',
+      sources: ['https://arxiv.org/abs/2302.13971'] },
+    { id: 'code-llama', name: 'Code Llama', org: 'Meta AI', year: 2023,
+      trainingFLOP: 1.5e23,
+      clusterMatches: ['Paper on Code Llama'],
+      note: 'Specialised code model fine-tuned on Llama 2.',
+      sources: ['https://ai.meta.com/blog/code-llama-large-language-model-coding/'] },
+  ];
+
+  // Match a cluster to the models it trained (substring match on name OR owner)
+  function modelsForCluster(cluster) {
+    const cn = (cluster.name || '').toLowerCase();
+    const co = (cluster.owner || '').toLowerCase();
+    return FRONTIER_MODELS.filter(m =>
+      m.clusterMatches.length > 0 && m.clusterMatches.some(s => {
+        const ls = s.toLowerCase();
+        return cn === ls || cn.startsWith(ls) || cn.includes(ls) || co.includes(ls);
+      })
+    );
+  }
+  function clustersForModel(model) {
+    return rows.filter(r => modelsForCluster(r).some(m => m.id === model.id));
+  }
+  // expose for debug
+  window._FRONTIER_MODELS = FRONTIER_MODELS;
+  window._modelsForCluster = modelsForCluster;
+  window._clustersForModel = clustersForModel;
 
   // Global totals — two sets: operational-only and all tracked (operational + planned + construction).
   // % chips compare like-for-like: operational clusters against operational totals, non-operational against the full tracked set.
@@ -1485,6 +1677,54 @@ window.addEventListener('unhandledrejection', (e) => {
       });
   }
 
+  // ─── Models view: each frontier model rendered at its training cluster ───
+  function applyModelsView(rawData) {
+    clearHeatmap();
+    world.pointsData([]).hexBinPointsData([]).heatmapsData([]);
+    // Build markers — one per (model × cluster) pairing.
+    // If a model has multiple training clusters we show a marker at each.
+    const markers = [];
+    for (const m of FRONTIER_MODELS) {
+      const matches = clustersForModel(m);
+      if (!matches.length) continue;
+      // Cap visual contribution from any single (m,c) pair so a 5GW Stargate
+      // cluster doesn't crush the rest. Use log scaling on training compute.
+      const flopMag = m.trainingFLOP ? Math.log10(m.trainingFLOP) - 22 : 1; // ~1..5
+      for (const c of matches) {
+        if (c.lat == null || c.lng == null) continue;
+        markers.push({
+          lat: c.lat, lng: c.lng,
+          model: m, cluster: c,
+          alt: Math.min(0.5, 0.08 + flopMag * 0.06),
+          rad: Math.min(0.6, 0.18 + flopMag * 0.06),
+        });
+      }
+    }
+    // Use Globe.gl labelsData for the model name, with a custom text style.
+    const labelData = markers.map(mk => ({
+      ...mk,
+      text: mk.model.name,
+    }));
+    world
+      .pointsData(markers)
+      .pointAltitude(d => d.alt)
+      .pointRadius(d => d.rad)
+      .pointColor(() => '#d4af37')
+      .pointResolution(8)
+      .pointLabel(d => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(212,175,55,0.4);border-radius:6px;padding:10px 14px;font-family:Inter,sans-serif;color:#e8e8ec;max-width:280px;">
+        <div style="font-size:10px;color:var(--accent);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:6px;">${escapeHtml(d.model.org)} · ${d.model.year}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:4px;">${escapeHtml(d.model.name)}</div>
+        <div style="font-size:11px;color:#c0c0c8;margin-bottom:6px;">on ${escapeHtml(d.cluster.name)}</div>
+        ${d.model.note ? `<div style="font-size:10px;color:#9a9aa4;line-height:1.5;">${escapeHtml(d.model.note)}</div>` : ''}
+      </div>`)
+      .onPointClick(d => showModelDetail(d.model));
+    // Pulsing rings on every training cluster as a visual emphasis
+    world.ringsData(markers)
+      .ringLat(d => d.lat).ringLng(d => d.lng)
+      .ringColor(() => (t) => `rgba(212, 175, 55, ${0.7 - t * 0.7})`)
+      .ringMaxRadius(2.5).ringPropagationSpeed(1.6).ringRepeatPeriod(2200);
+  }
+
   // Heat colour gradient: blue → cyan → yellow → orange → red
   function heatColor(w, alphaMult = 1, maxRef = null) {
     if (!w) return `rgba(80, 120, 180, ${0.3 * alphaMult})`;
@@ -1521,7 +1761,8 @@ window.addEventListener('unhandledrejection', (e) => {
     if (viewMode === 'points') applyPointsView(data);
     else if (viewMode === 'heatmap') applyHeatmapView(data);
     else if (viewMode === 'hex') applyHexView(data);
-    updateMegaRings(data);
+    else if (viewMode === 'models') applyModelsView(data);
+    if (viewMode !== 'models') updateMegaRings(data);
   }
 
   // Pulsing rings on mega-clusters (>=1 GW). Purely visual emphasis.
@@ -1817,12 +2058,30 @@ window.addEventListener('unhandledrejection', (e) => {
   });
 
   // View mode buttons (Points / Heatmap / Hex)
+  // Defensive: force the globe canvas to recompute its size. Globe.gl reads
+  // container dimensions on first paint; if the layout was racing the script
+  // (e.g. fonts still loading) the canvas can come up 0×0. A resize fixes it.
+  function syncGlobeSize() {
+    const gc = document.getElementById('globeContainer');
+    if (gc && world && world.width && world.height) {
+      world.width(gc.clientWidth);
+      world.height(gc.clientHeight);
+    }
+    window.dispatchEvent(new Event('resize'));
+  }
+  // Fire once after layout settles, then on each font/load event
+  setTimeout(syncGlobeSize, 50);
+  setTimeout(syncGlobeSize, 600);
+  if (document.fonts?.ready) document.fonts.ready.then(syncGlobeSize);
+
   document.querySelectorAll('#viewModeToggle button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#viewModeToggle button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       viewMode = btn.dataset.view;
       renderView(window._filtered || rows);
+      // Belt-and-braces: re-sync canvas size after the view re-renders
+      requestAnimationFrame(syncGlobeSize);
       console.log('[Compute Atlas] view mode:', viewMode);
     });
   });
@@ -1996,6 +2255,17 @@ window.addEventListener('unhandledrejection', (e) => {
         ${locIsSpecific ? `<a href="${googleMapsUrl}" target="_blank" rel="noopener" class="link-btn">Open in Google Maps ↗</a>` : `<div class="link-btn-disabled" title="Epoch lists this cluster at country-centroid coordinates — exact site isn't public, so the map link is hidden to avoid landing in random farmland.">Map link unavailable · location undisclosed</div>`}
       </div>
 
+      ${(() => {
+        const trained = modelsForCluster(d);
+        if (!trained.length) return '';
+        const chips = trained.map(m => `<button class="model-chip" data-model-id="${m.id}" title="${escapeHtml(m.note || '')}">${escapeHtml(m.name)} <span class="org">${escapeHtml(m.org)}</span></button>`).join('');
+        return `<div class="section">
+          <div class="section-title">Trained here · frontier models</div>
+          <div class="model-chip-row">${chips}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Public training disclosures + Epoch AI cluster naming.</div>
+        </div>`;
+      })()}
+
       ${d.note || d.quote || (d.noteworthy && !/^(true|yes|y|no|n|false)$/i.test(d.noteworthy.trim())) ? `
       <div class="section">
         <div class="section-title">Notes</div>
@@ -2060,12 +2330,93 @@ window.addEventListener('unhandledrejection', (e) => {
       });
     }
 
+    // Wire up model chips → switch to model detail view
+    panelContent.querySelectorAll('.model-chip[data-model-id]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const m = FRONTIER_MODELS.find(x => x.id === chip.dataset.modelId);
+        if (m) showModelDetail(m);
+      });
+    });
+
     panel.classList.add('visible');
     leaderboardEl.classList.add('hidden');
 
     // Zoom to cluster
     world.pointOfView({ lat: d.lat, lng: d.lng, altitude: 1.2 }, 800);
   }
+
+  // ─── Frontier model detail view ───────────────────────────────────
+  function fmtTrainFLOP(n) {
+    if (!n) return '—';
+    const exp = Math.floor(Math.log10(n));
+    const mant = (n / Math.pow(10, exp)).toFixed(1);
+    return `${mant} × 10<sup>${exp}</sup> FLOP`;
+  }
+  function showModelDetail(model) {
+    const trainingClusters = clustersForModel(model);
+    const totalMW = trainingClusters.reduce((s, c) => s + (c.mw || 0), 0);
+    const totalH100 = trainingClusters.reduce((s, c) => s + (c.h100 || 0), 0);
+    const clusterRows = trainingClusters.map(c => `
+      <div class="model-cluster-row" data-cluster-name="${escapeHtml(c.name || '')}">
+        <div class="name">${escapeHtml(c.name || 'Unnamed')}</div>
+        <div class="meta">${escapeHtml(c.country || '')}${c.mw ? ` · ${c.mw >= 1000 ? (c.mw/1000).toFixed(2) + ' GW' : Math.round(c.mw) + ' MW'}` : ''}${c.firstOpYear ? ` · ${c.firstOpYear}` : ''}</div>
+      </div>
+    `).join('') || `<div class="note" style="color:var(--text-muted);">No matching cluster in dataset — model trained on rented infrastructure (e.g. AWS Trainium, Google Cloud TPU) not catalogued individually.</div>`;
+    panelContent.innerHTML = `
+      <span class="status-pill status-operational" style="background:rgba(212,175,55,0.15);color:var(--accent);border-color:rgba(212,175,55,0.4);">Frontier model</span>
+      <h2>${escapeHtml(model.name)}</h2>
+      <div class="owner">${escapeHtml(model.org)} · ${model.year}</div>
+
+      <div style="margin: 4px 0 12px;">
+        ${model.params ? `<span class="context-chip">${escapeHtml(model.params)}</span>` : ''}
+        ${model.trainingFLOP ? `<span class="context-chip neutral">Train compute: ${fmtTrainFLOP(model.trainingFLOP)}</span>` : ''}
+      </div>
+
+      ${model.note ? `<div class="section"><div class="note">${escapeHtml(model.note)}</div></div>` : ''}
+
+      <div class="section">
+        <div class="section-title">Trained on · ${trainingClusters.length} cluster${trainingClusters.length === 1 ? '' : 's'}</div>
+        ${trainingClusters.length ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">${fmtNum(totalMW)} MW · ${fmtNum(totalH100)} H100-eq combined</div>` : ''}
+        <div class="model-cluster-list">${clusterRows}</div>
+      </div>
+
+      ${model.sources?.length ? `<div class="section sources">
+        <div class="section-title">Sources</div>
+        ${model.sources.map(s => `<a href="${s}" target="_blank" rel="noopener">${escapeHtml(s.replace(/^https?:\/\//, '').slice(0, 60))}</a>`).join('')}
+      </div>` : ''}
+
+      <div style="margin-top:16px;">
+        <a href="#" id="modelBackToCluster" class="link-btn">← Back to cluster view</a>
+      </div>
+    `;
+    // Wire cluster rows to fly + show detail
+    panelContent.querySelectorAll('.model-cluster-row[data-cluster-name]').forEach(row => {
+      row.addEventListener('click', () => {
+        const cluster = rows.find(r => r.name === row.dataset.clusterName);
+        if (cluster) showDetail(cluster);
+      });
+    });
+    panelContent.querySelector('#modelBackToCluster')?.addEventListener('click', e => {
+      e.preventDefault();
+      panel.classList.remove('visible');
+      leaderboardEl.classList.remove('hidden');
+    });
+    // Highlight training clusters with rings + fly to first
+    if (trainingClusters.length) {
+      world.ringsData(trainingClusters)
+        .ringLat(c => c.lat).ringLng(c => c.lng)
+        .ringColor(() => (t) => `rgba(212, 175, 55, ${0.9 - t * 0.9})`)
+        .ringMaxRadius(3.5).ringPropagationSpeed(2.2).ringRepeatPeriod(1400);
+      const first = trainingClusters[0];
+      if (first?.lat != null) {
+        if (world.controls) world.controls().autoRotate = false;
+        world.pointOfView({ lat: first.lat, lng: first.lng, altitude: 1.6 }, 900);
+      }
+    }
+    panel.classList.add('visible');
+    leaderboardEl.classList.add('hidden');
+  }
+  window._showModelDetail = showModelDetail;
 
   // ——— Compare pinboard ———
   const pinnedClusters = new Set();
@@ -2804,6 +3155,28 @@ window.addEventListener('unhandledrejection', (e) => {
         });
       });
       syncLegendHighlight();
+    } else if (viewMode === 'models') {
+      // Model picker — click to fly to a model
+      const modelChips = FRONTIER_MODELS.map(m => {
+        const matches = clustersForModel(m).length;
+        const dim = matches === 0 ? 'opacity:0.35;' : '';
+        return `<div class="legend-model-row" data-model-id="${m.id}" style="${dim}" title="${escapeHtml(m.note || '')}">
+          <span class="dot"></span>
+          <span class="name">${escapeHtml(m.name)}</span>
+          <span class="org">${escapeHtml(m.org)} · ${m.year}</span>
+        </div>`;
+      }).join('');
+      legendEl.innerHTML = `
+        <h4>Frontier models · ${FRONTIER_MODELS.length}</h4>
+        <div class="legend-models">${modelChips}</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:8px;letter-spacing:0.05em;">Click a model to fly to its training cluster.</div>
+      `;
+      legendEl.querySelectorAll('.legend-model-row[data-model-id]').forEach(el => {
+        el.addEventListener('click', () => {
+          const m = FRONTIER_MODELS.find(x => x.id === el.dataset.modelId);
+          if (m) showModelDetail(m);
+        });
+      });
     } else {
       const label = sizeMode === 'h100' ? 'H100-eq density' : 'Power density';
       const hi = viewMode === 'heatmap' ? 'Hotspot' : 'Tall stack';

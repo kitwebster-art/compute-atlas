@@ -40,6 +40,37 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Frontier models layer + "Trained here" in cluster detail
+
+The killer feature for SEO + share-ability: a curated list of 16 frontier
+AI models linked to the clusters that trained them.
+
+**What's new:**
+- Cluster detail panel gets a "Trained here · frontier models" section
+  with clickable chips. xAI Colossus Phase 1 → Grok 3. Gemini 1.0 Ultra
+  training cluster → Gemini 1.0 Ultra. Etc.
+- Click a chip → side panel switches to a **model detail view** with
+  org, year, params, training compute (× 10ⁿ FLOP), notes, sources,
+  and a clickable list of every cluster that trained the model.
+- New **Models** view mode (4th button alongside Points / Heatmap /
+  Hex bins). Renders gold spikes at every training cluster, sized by
+  log(training compute). Pulsing rings emphasise each site.
+- In Models view the bottom-left legend becomes a **frontier-model
+  picker** — 16 models from Gemini 1.0 Ultra to Grok 4 with org and
+  year. Click any one to fly the camera to its training cluster and
+  open the model detail.
+- Defensive `syncGlobeSize()` resize tick on each view-mode change to
+  prevent rare blank-canvas races on slow first paints.
+
+**Models in v1:** Gemini 1.0 Ultra, Gemini 2.0/2.5, GPT-4, GPT-4o,
+GPT-5, Grok 3, Grok 4, Llama 3.1, Llama 4, Claude Opus 4.x, Mistral
+Large, Pangu Ultra MoE, Qwen, Tesla FSD v13, LLaMA, Code Llama. List
+is hand-curated and easy to extend.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `c5cfbbe` · Hide Google Maps link when location is undisclosed
 
 Epoch's CSV uses **country-centroid coordinates** as a placeholder when
