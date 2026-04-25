@@ -1563,7 +1563,7 @@ window.addEventListener('unhandledrejection', (e) => {
   // Leaderboard — top operators by current weight mode
   function renderLeaderboard(data) {
     const lb = document.getElementById('lbList');
-    const unitLabel = sizeMode === 'power' ? 'MW' : 'H100-eq';
+    const unitLabel = sizeMode === 'power' ? 'MW / GW' : 'H100-eq';
     document.getElementById('lbUnit').textContent = unitLabel;
 
     const byOwner = new Map();
@@ -1598,7 +1598,7 @@ window.addEventListener('unhandledrejection', (e) => {
       <div class="lb-row ${activeOwner === o.name ? 'active' : ''}" data-owner="${escapeHtml(o.name)}">
         <div class="rank">${i + 1}</div>
         <div class="name" title="${escapeHtml(o.name)}">${escapeHtml(o.name)} <span class="count">· ${o.count}</span></div>
-        <div class="val">${fmtNum(o.total)}</div>
+        <div class="val">${fmtWeight(o.total, sizeMode)}</div>
       </div>
     `).join('') || `<div style="font-size:11px;color:var(--text-muted);padding:8px 0;">No data</div>`;
 
@@ -1632,12 +1632,12 @@ window.addEventListener('unhandledrejection', (e) => {
     const rows = [...byCountry.values()].sort((a, b) => b.total - a.total).slice(0, 6);
     if (rows.length === 0) { el.innerHTML = ''; return; }
     const max = rows[0].total;
-    const unitLabel = sizeMode === 'power' ? 'MW' : 'H100-eq';
+    const unitLabel = sizeMode === 'power' ? 'MW / GW' : 'H100-eq';
     const activeCountry = document.getElementById('filterCountry')?.value || 'all';
     el.innerHTML = `<h4>Top countries · ${unitLabel}</h4>` + rows.map(v => `
       <div class="chip-row chip-row-clickable ${activeCountry === v.name ? 'active' : ''}" data-country="${escapeHtml(v.name)}" title="Click to filter by ${escapeHtml(v.name)} (${v.count} cluster${v.count !== 1 ? 's' : ''})">
         <div class="name">${escapeHtml(v.name)}</div>
-        <div class="val">${fmtNum(v.total)}</div>
+        <div class="val">${fmtWeight(v.total, sizeMode)}</div>
         <div class="bar"><span style="width:${(v.total / max * 100).toFixed(1)}%;"></span></div>
       </div>
     `).join('');
@@ -1693,11 +1693,11 @@ window.addEventListener('unhandledrejection', (e) => {
     const rows = [...byVendor.values()].sort((a, b) => b.total - a.total);
     if (rows.length === 0) { el.innerHTML = ''; return; }
     const max = rows[0].total;
-    const unitLabel = sizeMode === 'power' ? 'MW' : 'H100-eq';
+    const unitLabel = sizeMode === 'power' ? 'MW / GW' : 'H100-eq';
     el.innerHTML = `<h4>By chip vendor · ${unitLabel}</h4>` + rows.map(v => `
       <div class="chip-row" title="${v.count} cluster${v.count !== 1 ? 's' : ''}">
         <div class="name">${v.name}</div>
-        <div class="val">${fmtNum(v.total)}</div>
+        <div class="val">${fmtWeight(v.total, sizeMode)}</div>
         <div class="bar"><span style="width:${(v.total / max * 100).toFixed(1)}%;"></span></div>
       </div>
     `).join('');
@@ -2126,6 +2126,17 @@ window.addEventListener('unhandledrejection', (e) => {
     if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
     if (n >= 1e3) return (n / 1e3).toFixed(1) + 'k';
     return n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  }
+
+  // Power-aware: returns "8.6 GW" for 8600, "350 MW" for 350.
+  // For non-power modes (e.g. h100-eq) falls back to fmtNum.
+  function fmtWeight(n, mode) {
+    if (!n) return '—';
+    if (mode === 'power') {
+      if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 1 : 2) + ' GW';
+      return Math.round(n) + ' MW';
+    }
+    return fmtNum(n);
   }
 
   function fmtFlops(n) {
