@@ -40,14 +40,14 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Click status mix to filter
+### `231d193` · Click status mix to filter
 
 Both the segments and the legend pills under the masthead status-mix
 bar are now clickable. Click "5% live" to instantly drop the view to
 the 535 operational clusters; click again to restore. Same for Planned
 and Other. One-click access to the most-asked filter on the dashboard.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 231d193`
 
 ---
 
