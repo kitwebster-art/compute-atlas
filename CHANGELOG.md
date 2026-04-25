@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Bake attribution + headline stats into PNG snapshots
+### `17e6cc9` · Bake attribution + headline stats into PNG snapshots
 
 The Save PNG button now composites the globe onto a 2D canvas and overlays:
 
@@ -51,7 +51,7 @@ The Save PNG button now composites the globe onto a 2D canvas and overlays:
 Every shared screenshot now carries the source and the headline stat, so
 press / social posts can't lose the attribution.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 17e6cc9`
 
 ---
 
