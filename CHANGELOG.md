@@ -40,6 +40,19 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Status mix bar (live vs planned vs other)
+
+Under the cluster count and totals strip in the top-right, a small
+stacked bar now shows what fraction of the visible total power is
+**live (Existing)** vs **planned** vs decommissioned/other, with a
+tiny legend showing the percentages. Surfaces the central narrative
+of the dataset at a glance: at the global default ≈ 5% of tracked
+compute is online, ≈ 95% is planned. Updates live with filters.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `17e6cc9` · Bake attribution + headline stats into PNG snapshots
 
 The Save PNG button now composites the globe onto a 2D canvas and overlays:

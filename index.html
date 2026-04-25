@@ -74,6 +74,23 @@
       color: var(--accent); font-weight: 500; margin-right: 2px;
     }
     .counter .stats-line .sep { color: var(--border); margin: 0 6px; }
+    .counter .status-mix {
+      margin-top: 8px; height: 4px; width: 220px; max-width: 100%; margin-left: auto;
+      display: flex; gap: 1px; border-radius: 2px; overflow: hidden;
+      background: rgba(255,255,255,0.04);
+    }
+    .counter .status-mix .seg { height: 100%; transition: width 0.25s ease; }
+    .counter .status-mix .seg.op { background: #4ad188; }
+    .counter .status-mix .seg.pl { background: #6c8cc4; }
+    .counter .status-mix .seg.ot { background: #5a6068; }
+    .counter .status-mix-legend {
+      display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px;
+      font-size: 9px; color: var(--text-dim); letter-spacing: 0.08em;
+    }
+    .counter .status-mix-legend span { display: inline-flex; align-items: center; gap: 4px; }
+    .counter .status-mix-legend i {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    }
 
     /* Filters */
     .filters {
@@ -791,6 +808,7 @@
       .counter .big { font-size: 22px; }
       .counter span:not(.big):not(.stats-line) { font-size: 8px; letter-spacing: 0.2em; }
       .counter .stats-line { display: none; }
+      .counter .status-mix { display: none; }
       .search-wrap { top: 80px; }
       .region-strip { flex-wrap: wrap; justify-content: center; gap: 4px; }
       .region-strip button { font-size: 9px; padding: 4px 8px; }
@@ -848,6 +866,7 @@
     <span class="big" id="visibleCount">—</span>
     <span>CLUSTERS SHOWN</span>
     <span class="stats-line" id="visibleStats"></span>
+    <div class="status-mix" id="statusMix" title="Power split: operational vs under construction vs planned"></div>
   </div>
 </header>
 
@@ -1577,8 +1596,45 @@ window.addEventListener('unhandledrejection', (e) => {
       if (totalFlops) parts.push(`<strong title="Peak theoretical FLOP/s summed across all visible clusters">${fmtFlops(totalFlops)}</strong>`);
       statsLineEl.innerHTML = parts.join('<span class="sep">·</span>');
     }
+    renderStatusMix(filtered, totalMW);
     renderLeaderboard(filtered);
     console.log('[Compute Atlas] filter applied:', { status, owner, country, minMW, year: timelineActive ? timelineYear : 'all', shown: filtered.length, view: viewMode });
+  }
+
+  function renderStatusMix(data, totalMW) {
+    const el = document.getElementById('statusMix');
+    if (!el) return;
+    if (!totalMW) { el.innerHTML = ''; return; }
+    let op = 0, pl = 0, ot = 0;
+    for (const r of data) {
+      const w = r.mw || 0;
+      if (!w) continue;
+      const s = (r.status || '').toLowerCase();
+      if (/exist|operational|live/.test(s)) op += w;
+      else if (/plan/.test(s)) pl += w;
+      else ot += w;
+    }
+    const tot = op + pl + ot;
+    if (!tot) { el.innerHTML = ''; return; }
+    const fmt = mw => mw >= 1000 ? (mw / 1000).toFixed(1) + ' GW' : Math.round(mw) + ' MW';
+    const opP = (op / tot * 100), plP = (pl / tot * 100), otP = (ot / tot * 100);
+    el.innerHTML = `
+      <div class="seg op" style="width:${opP.toFixed(2)}%" title="Live (Existing): ${fmt(op)} (${opP.toFixed(0)}%)"></div>
+      <div class="seg pl" style="width:${plP.toFixed(2)}%" title="Planned: ${fmt(pl)} (${plP.toFixed(0)}%)"></div>
+      <div class="seg ot" style="width:${otP.toFixed(2)}%" title="Decommissioned / other: ${fmt(ot)} (${otP.toFixed(0)}%)"></div>
+    `;
+    let legend = el.nextElementSibling;
+    if (!legend || !legend.classList.contains('status-mix-legend')) {
+      legend = document.createElement('div');
+      legend.className = 'status-mix-legend';
+      el.parentNode.insertBefore(legend, el.nextSibling);
+    }
+    const otHtml = otP > 0.5 ? `<span><i style="background:#5a6068"></i>${otP.toFixed(0)}% other</span>` : '';
+    legend.innerHTML = `
+      <span><i style="background:#4ad188"></i>${opP.toFixed(0)}% live</span>
+      <span><i style="background:#6c8cc4"></i>${plP.toFixed(0)}% planned</span>
+      ${otHtml}
+    `;
   }
 
   // Leaderboard — top operators by current weight mode
