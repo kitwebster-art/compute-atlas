@@ -40,6 +40,21 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Soften points scale so small (operational) bars stay visible
+
+Operational clusters were ≤100 MW each, while planned clusters reach
+5 GW. With the previous `sqrt(w/max)` scale a 50 MW green bar was 1%
+the height of a 5 GW blue and effectively invisible.
+
+Now altitude uses `pow(w/max, 0.4)` plus a 0.028 floor (≈5% of max
+height), and radius gets the same softer curve plus a 0.14 floor.
+Result: blue mega-clusters still dominate (visible MW ordering kept)
+but small green operational sites are readable as actual bars.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `88e78e4` · Stack filters + status legend in a left rail (no overlap)
 
 The bottom-left STATUS legend was overlapping the filter sidebar's
