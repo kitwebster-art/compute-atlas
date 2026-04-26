@@ -1024,6 +1024,14 @@
     </div>
   </div>
 
+  <div class="filter-row">
+    <label title="Soft = compressed power curve, small bars visible, MW comparison approximate. Linear = strictly proportional, small bars near-invisible.">Bar scale</label>
+    <div class="size-mode" id="scaleModeToggle">
+      <button data-scale="soft" class="active" title="Compressed curve — small bars visible">Soft</button>
+      <button data-scale="linear" title="Strictly proportional to MW">Linear</button>
+    </div>
+  </div>
+
   <div class="filter-row" style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;">
     <button id="btnSurprise" class="action-btn" title="Random notable cluster (S)">Surprise me</button>
     <button id="btnExport" class="action-btn" title="Download filtered CSV">Export CSV</button>
@@ -1533,6 +1541,7 @@ window.addEventListener('unhandledrejection', (e) => {
   // Modes
   let sizeMode = 'power';
   let viewMode = 'points';
+  let scaleMode = 'soft'; // 'soft' (visibility-friendly power curve) | 'linear' (strict proportional)
   const weightFor = (r) => {
     if (sizeMode === 'power') return r.mw || 0;
     if (sizeMode === 'h100') return r.h100 || 0;
@@ -1590,19 +1599,28 @@ window.addEventListener('unhandledrejection', (e) => {
     // to MW — the standard cartographic encoding. A 4 MW cluster reads
     // as clearly taller than a 1 MW cluster, and a 1000 MW cluster
     // dominates without crushing everything else.
-    // Softer power scale (0.4) + floor on min height/radius keeps the
-    // largest planned clusters (multi-GW) visually dominant while
-    // ensuring small operational clusters remain readable. Without
-    // the floor, a 50 MW green cluster reads as <1% of a 5 GW blue.
+    // Two scale modes:
+    //   soft   — pow(w/max, 0.4) + visibility floor. Small bars are
+    //            readable. Bar height ≈ MW but on a compressed curve
+    //            (2× taller ≈ 5–6× MW). Default.
+    //   linear — bar height directly proportional to MW. Tiny clusters
+    //            become invisible but "twice as tall = twice the MW"
+    //            holds exactly. For strict cross-cluster comparison.
     const altFor = d => {
       const w = weightFor(d);
-      if (!w) return 0.012;
+      if (!w) return 0.005;
+      if (scaleMode === 'linear') {
+        return Math.min(0.55, (w / pointScaleRef) * 0.55);
+      }
       const norm = Math.pow(w / pointScaleRef, 0.4);
       return Math.min(0.55, Math.max(0.028, norm * 0.5));
     };
     const radFor = d => {
       const w = weightFor(d);
-      if (!w) return 0.14;
+      if (!w) return scaleMode === 'linear' ? 0.06 : 0.14;
+      if (scaleMode === 'linear') {
+        return Math.min(0.7, Math.max(0.06, (w / pointScaleRef) * 0.6));
+      }
       const norm = Math.pow(w / pointScaleRef, 0.4);
       return Math.min(0.7, Math.max(0.14, norm * 0.55));
     };
@@ -2118,6 +2136,18 @@ window.addEventListener('unhandledrejection', (e) => {
       renderView(window._filtered || rows);
       renderLeaderboard(window._filtered || rows);
       console.log('[Compute Atlas] weight mode:', sizeMode);
+    });
+  });
+
+  // Bar scale toggle (soft vs linear)
+  document.querySelectorAll('#scaleModeToggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#scaleModeToggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      scaleMode = btn.dataset.scale;
+      renderView(window._filtered || rows);
+      writeUrlState();
+      console.log('[Compute Atlas] scale mode:', scaleMode);
     });
   });
 
@@ -2978,6 +3008,7 @@ window.addEventListener('unhandledrejection', (e) => {
       mw: document.getElementById('filterMinMW').value,
       view: viewMode,
       size: sizeMode,
+      scale: scaleMode,
       year: timelineActive ? timelineYear : null,
     };
     return s;
@@ -2994,6 +3025,7 @@ window.addEventListener('unhandledrejection', (e) => {
       if (s.mw && s.mw !== '0') params.set('mw', s.mw);
       if (s.view && s.view !== 'points') params.set('view', s.view);
       if (s.size && s.size !== 'power') params.set('size', s.size);
+      if (s.scale && s.scale !== 'soft') params.set('scale', s.scale);
       if (s.year !== null) params.set('year', s.year);
       const qs = params.toString();
       const newUrl = location.pathname + (qs ? '?' + qs : '') + location.hash;
@@ -3036,6 +3068,14 @@ window.addEventListener('unhandledrejection', (e) => {
         document.querySelectorAll('#sizeModeToggle button').forEach(b => b.classList.remove('active'));
         sb.classList.add('active');
         sizeMode = p.get('size');
+      }
+    }
+    if (p.has('scale')) {
+      const sb = document.querySelector(`#scaleModeToggle button[data-scale="${p.get('scale')}"]`);
+      if (sb) {
+        document.querySelectorAll('#scaleModeToggle button').forEach(b => b.classList.remove('active'));
+        sb.classList.add('active');
+        scaleMode = p.get('scale');
       }
     }
     if (p.has('year')) {

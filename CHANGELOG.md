@@ -40,6 +40,25 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Bar scale toggle: Soft vs Linear
+
+Lets users pick the trade-off between visibility and strict
+proportionality.
+
+- **Soft** (default): `pow(w/max, 0.4)` with a visibility floor.
+  Small operational bars are readable; bar height ≈ MW on a
+  compressed curve. Best for at-a-glance reading.
+- **Linear**: bar height directly proportional to MW. Twice as tall
+  = twice the MW exactly. Small clusters become invisible nubs but
+  cross-cluster comparison is mathematically honest.
+
+New `Bar scale` row in the filter panel (Soft | Linear). Persists
+in `?scale=` URL state so a shared link preserves the chosen mode.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `9e6b8b6` · Soften points scale so small (operational) bars stay visible
 
 Operational clusters were ≤100 MW each, while planned clusters reach
