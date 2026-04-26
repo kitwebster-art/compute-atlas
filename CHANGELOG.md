@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Bar scale toggle: Soft vs Linear
+### `f4a2924` · Bar scale toggle: Soft vs Linear
 
 Lets users pick the trade-off between visibility and strict
 proportionality.
@@ -55,7 +55,7 @@ proportionality.
 New `Bar scale` row in the filter panel (Soft | Linear). Persists
 in `?scale=` URL state so a shared link preserves the chosen mode.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert f4a2924`
 
 ---
 
