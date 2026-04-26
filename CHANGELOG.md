@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Soften points scale so small (operational) bars stay visible
+### `9e6b8b6` · Soften points scale so small (operational) bars stay visible
 
 Operational clusters were ≤100 MW each, while planned clusters reach
 5 GW. With the previous `sqrt(w/max)` scale a 50 MW green bar was 1%
@@ -51,7 +51,7 @@ height), and radius gets the same softer curve plus a 0.14 floor.
 Result: blue mega-clusters still dominate (visible MW ordering kept)
 but small green operational sites are readable as actual bars.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 9e6b8b6`
 
 ---
 
