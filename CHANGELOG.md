@@ -40,6 +40,21 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Stack filters + status legend in a left rail (no overlap)
+
+The bottom-left STATUS legend was overlapping the filter sidebar's
+"Share this view" button on shorter viewports. Wrapped both in a
+`.left-rail` flex column: filters take available space (and scroll
+internally if content exceeds the rail), legend pinned just below.
+Overlap is now structurally impossible.
+
+Also: View-mode buttons now wrap to two rows so the new MODELS ★
+button no longer gets truncated at narrow widths.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `8ef4f8e` · Frontier models layer + "Trained here" in cluster detail
 
 The killer feature for SEO + share-ability: a curated list of 16 frontier
