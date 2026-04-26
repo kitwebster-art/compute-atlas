@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Stack filters + status legend in a left rail (no overlap)
+### `88e78e4` · Stack filters + status legend in a left rail (no overlap)
 
 The bottom-left STATUS legend was overlapping the filter sidebar's
 "Share this view" button on shorter viewports. Wrapped both in a
@@ -51,7 +51,7 @@ Overlap is now structurally impossible.
 Also: View-mode buttons now wrap to two rows so the new MODELS ★
 button no longer gets truncated at narrow widths.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 88e78e4`
 
 ---
 
