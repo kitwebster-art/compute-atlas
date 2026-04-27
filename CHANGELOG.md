@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Spread co-located clusters with micro-jitter
+### `d70db13` · Spread co-located clusters with micro-jitter
 
 Many sites share an exact lat/lng — multi-phase builds at one address
 (e.g. Nebius Kansas City Phase 1 & 2 both at 39.098, -94.579). Bars
@@ -57,7 +57,7 @@ the geography is more precise than it is.
 The 253-row anonymised Chinese centroid group is exempt (>10 members)
 to avoid inventing fake locations across actual provinces.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert d70db13`
 
 ---
 
