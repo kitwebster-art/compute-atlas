@@ -1421,13 +1421,30 @@ window.addEventListener('unhandledrejection', (e) => {
     };
   }).filter(Boolean);
 
-  // ─── Merge community additions (FLOP Map curated additions) ───
-  // Loaded from a separate JSON to preserve attribution (Epoch CSV is
-  // CC-BY) and let the UI tag them with a "FLOP Map addition" badge.
+  // ─── Merge community additions + overrides ───
+  // Loaded from a separate JSON to preserve Epoch CC-BY attribution
+  // and let the UI tag our changes explicitly.
   try {
-    const addResp = await fetch('./flopmap_additions.json');
+    const addResp = await fetch('./flopmap_additions.json', { cache: 'no-store' });
     if (addResp.ok) {
       const data = await addResp.json();
+      // Apply overrides first — patch existing Epoch rows in place
+      let overrideCount = 0;
+      for (const ov of (data.overrides || [])) {
+        const m = ov.match || {};
+        for (const r of rows) {
+          let match = true;
+          for (const [k, v] of Object.entries(m)) {
+            if (r[k] !== v) { match = false; break; }
+          }
+          if (match) {
+            Object.assign(r, ov.set || {});
+            r._flopmapOverride = { reason: ov.reason, sources: ov.sources || [] };
+            overrideCount++;
+          }
+        }
+      }
+      if (overrideCount) console.log(`Applied ${overrideCount} FLOP Map overrides`);
       const addClusters = (data.clusters || []).map(a => ({
         name: a.name, owner: a.owner || 'Unknown',
         country: a.country, location: a.location,
@@ -2496,6 +2513,7 @@ window.addEventListener('unhandledrejection', (e) => {
         ${d.rankAtStart ? `<span class="context-chip">#${d.rankAtStart} largest at launch</span>` : ''}
         ${d.certainty ? `<span class="context-chip neutral">Certainty: ${escapeHtml(d.certainty)}</span>` : ''}
         ${d._flopmapAdded ? `<span class="context-chip" style="background:rgba(212,175,55,0.12);border-color:rgba(212,175,55,0.4);color:var(--accent);" title="Curated by FLOP Map — not part of Epoch AI's official dataset.">★ FLOP Map addition</span>` : ''}
+        ${d._flopmapOverride ? `<span class="context-chip" style="background:rgba(212,175,55,0.10);border-color:rgba(212,175,55,0.35);color:var(--accent);" title="${escapeHtml(d._flopmapOverride.reason || '')}">★ Status updated by FLOP Map</span>` : ''}
         ${d.noteworthy && /^(true|yes|y)$/i.test(d.noteworthy.trim()) ? `<span class="context-chip">★ Noteworthy</span>` : ''}
       </div>
 
@@ -3093,7 +3111,7 @@ window.addEventListener('unhandledrejection', (e) => {
   let contextActiveId = null;
   async function loadContextTopics() {
     try {
-      const r = await fetch('./context_topics.json');
+      const r = await fetch('./context_topics.json', { cache: 'no-store' });
       if (!r.ok) return;
       const j = await r.json();
       contextTopics = j.topics || [];

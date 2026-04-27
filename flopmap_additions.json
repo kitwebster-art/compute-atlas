@@ -1,6 +1,26 @@
 {
-  "_about": "Community-curated additions to the Epoch AI GPU Clusters dataset. Each entry is publicly sourced; certainty rating reflects how well-confirmed the cluster's specs and location are. Maintained by Kit Webster / FLOP Map.",
+  "_about": "Community-curated additions and overrides to the Epoch AI GPU Clusters dataset. Each entry is publicly sourced; certainty rating reflects how well-confirmed the cluster's specs and location are. Maintained by Kit Webster / FLOP Map.",
   "_added_at": "2026-04-27",
+  "overrides": [
+    {
+      "match": { "name": "xAI Colossus 2 Memphis Phase 1" },
+      "set": { "status": "Existing", "firstOp": "2025-Q4", "firstOpYear": 2025 },
+      "reason": "Confirmed operational by SemiAnalysis (Jan 2026) and Introl. ~1 GW with 550k GB200/GB300s reportedly online before late-Dec 2025 third-building purchase.",
+      "sources": [
+        "https://newsletter.semianalysis.com/p/xais-colossus-2-first-gigawatt-datacenter",
+        "https://introl.com/blog/xai-colossus-2-gigawatt-expansion-555k-gpus-january-2026"
+      ]
+    },
+    {
+      "match": { "name": "xAI Colossus 2 Memphis Phase 2" },
+      "set": { "status": "Existing", "firstOp": "2026-Q1", "firstOpYear": 2026 },
+      "reason": "Phase 2 (1.41 GW) confirmed operational alongside Phase 1 per Introl Jan 2026 coverage; Colossus 2 reported as 'world's first gigawatt datacenter' fully online.",
+      "sources": [
+        "https://newsletter.semianalysis.com/p/xais-colossus-2-first-gigawatt-datacenter",
+        "https://introl.com/blog/xai-colossus-2-gigawatt-expansion-555k-gpus-january-2026"
+      ]
+    }
+  ],
   "clusters": [
     {
       "name": "AirTrunk MEL1 Campus",
