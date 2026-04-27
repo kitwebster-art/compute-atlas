@@ -40,6 +40,96 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `05fc74f` · Keyboard shortcut 4 toggles Models view
+
+The new Models view needed a sibling key to 1/2/3 (Points/Heatmap/Hex).
+Press `4` to switch to Frontier Models. Help modal updated.
+
+**Revert:** `git revert 05fc74f`
+
+---
+
+### `ca589fc` · Interactive "Show this on the map" actions in Context
+
+Each Context topic now has 1–3 action buttons that turn the explainer
+into an interactive tour. Click "Show me China" or "Switch to Frontier
+Models view" or "Show Stargate Abilene Phase 3" and the modal closes,
+filters apply, the camera flies to the right place, or a specific
+cluster's detail panel opens. Driven by JSON, easy to add more actions.
+
+**Revert:** `git revert ca589fc`
+
+---
+
+### `6727d2f` · Visible attribution: "691 Epoch · +34 FLOP Map"
+
+Right under "725 / CLUSTERS SHOWN" the masthead counter now shows the
+source split. Helps users understand where the data comes from without
+opening About, and prevents Epoch from being silently merged with our
+additions. Updates live with the filter — filter to Australia and you
+see "5 Epoch · +7 FLOP Map", making the gap obvious.
+
+**Revert:** `git revert 6727d2f`
+
+---
+
+### `113111f` · Fix mobile masthead — h1 was wrapping into the search bar
+
+The masthead is a flex row of .brand + .counter. .brand had no
+flex-grow so it sized to the eyebrow width (~71 px) and the h1 wrapped
+to four lines, hiding behind the search bar. Now `.brand: flex:1;
+min-width:0` and h1 is `white-space:nowrap; ellipsis` on mobile.
+
+**Revert:** `git revert 113111f`
+
+---
+
+### `f4afe7f` · Color Models-view bars + legend dots by organisation
+
+Replaces the uniform gold spike colour with brand-ish hues: OpenAI
+green, Google blue, xAI black, Meta blue, Anthropic coral, Mistral
+orange, Huawei red, Alibaba orange, Tesla red. Legend dots match.
+Makes the AI ecosystem visually legible at a glance.
+
+**Revert:** `git revert f4afe7f`
+
+---
+
+### `02475ef` · Floating coverage hint when filtering reveals a coverage gap
+
+When users filter to China or Russia, a small floating banner appears
+above the timeline explaining why the map looks sparse there and
+offering a one-click jump to the relevant Context tab.
+
+**Revert:** `git revert 02475ef`
+
+---
+
+### `0dffd61` · "Context" modal: 7 sourced explainers
+
+New "Context" footer link opens a multi-tab modal with concise,
+sourced explainers on the forces shaping what's visible (or invisible)
+on the globe: Chip controls, China silicon, Custom silicon, Russia,
+Sovereign AI, Energy, Scaling law. Each topic has a 100–150 word body,
+a pull-quote, and 2–3 source links (CSIS, EPRI, Epoch AI, OpenAI,
+Bloomberg, DCD, etc.). Lives in `context_topics.json` so it can be
+edited without redeploying.
+
+**Revert:** `git revert 0dffd61`
+
+---
+
+### `fc26b09` · Fix About modal clipping + dynamic counts
+
+About modal had grown taller than the viewport, clipping the title.
+Added `max-height: calc(100vh - 60px) + overflow-y` on the card so it
+scrolls within itself. Also replaced hardcoded "691 sites · ≈55 GW
+· ≈79M H100-eq" with dynamic counts from the live merged dataset.
+
+**Revert:** `git revert fc26b09`
+
+---
+
 ### `f7b2772` · Tighten scope language: "AI cluster" not "GPU cluster", explain the gap
 
 People Google "data centers worldwide" and see ~11,000–11,800. FLOP
