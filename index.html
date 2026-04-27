@@ -1600,7 +1600,7 @@ window.addEventListener('unhandledrejection', (e) => {
     const chip = d.chipType ? (d.chipType + (d.chipQty ? ` × ${fmtNum(d.chipQty)}` : '')) : '';
     const opYear = d.firstOpYear ? d.firstOpYear : '';
     const statsLine = [
-      d.mw ? `${fmtNum(d.mw)} MW` : '',
+      d.mw ? fmtMwCompact(d.mw) : '',
       d.h100 ? `${fmtNum(d.h100)} H100-eq` : '',
       d.flops ? fmtFlops(d.flops) : '',
     ].filter(Boolean).join(' · ');
@@ -2274,7 +2274,7 @@ window.addEventListener('unhandledrejection', (e) => {
       <div class="section">
         <div class="section-title">Compute &amp; Power</div>
         <div class="stat-grid">
-          ${d.mw ? `<div class="stat-tile"><div class="lbl">Power</div><div class="val">${fmtNum(d.mw)} MW</div>${annualMwh ? `<div class="sub">${fmtNum(annualMwh)} MWh / yr</div>` : ''}</div>` : ''}
+          ${d.mw ? `<div class="stat-tile"><div class="lbl">Power</div><div class="val">${fmtMwCompact(d.mw)}</div>${annualMwh ? `<div class="sub">${fmtNum(annualMwh)} MWh / yr</div>` : ''}</div>` : ''}
           ${d.h100 ? `<div class="stat-tile"><div class="lbl">H100 equivalents</div><div class="val">${fmtNum(d.h100)}</div>${pctGlobalH100 !== null && pctGlobalH100 >= 0.05 ? `<div class="sub">${pctGlobalH100.toFixed(2)}% of ${refLabel}</div>` : ''}</div>` : ''}
           ${d.flops ? `<div class="stat-tile"><div class="lbl">Peak FLOP/s</div><div class="val">${fmtFlops(d.flops)}</div>${pctGlobalFlops !== null && pctGlobalFlops >= 0.05 ? `<div class="sub">${pctGlobalFlops.toFixed(2)}% of ${refLabel}</div>` : ''}</div>` : ''}
           ${d.totalChips ? `<div class="stat-tile"><div class="lbl">Total AI chips</div><div class="val">${fmtNum(d.totalChips)}</div></div>` : ''}
@@ -2743,7 +2743,7 @@ window.addEventListener('unhandledrejection', (e) => {
         <div class="meta">
           ${r.owner ? `<span>${highlight(r.owner, q)}</span>` : ''}
           ${r.country ? ` · <span>${highlight(r.country, q)}</span>` : ''}
-          ${r.mw ? ` · <span class="accent">${fmtNum(r.mw)} MW</span>` : ''}
+          ${r.mw ? ` · <span class="accent">${fmtMwCompact(r.mw)}</span>` : ''}
         </div>
       </div>
     `).join('');

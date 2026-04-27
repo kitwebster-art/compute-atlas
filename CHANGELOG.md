@@ -40,6 +40,22 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · MW → GW everywhere a single cluster's power displays
+
+Auto-promotion of MW values ≥ 1000 → GW now also applies to:
+
+- search results dropdown ("Stargate UAE Phase 2 · 1.00 GW", was "1.0k MW")
+- hover tooltip on globe points
+- the Power stat tile in the cluster detail panel
+
+Single shared `fmtMwCompact()` helper used everywhere a cluster's
+power renders, so a 2200 MW Stargate phase reads "2.20 GW" instead of
+"2.2k MW" in every UI surface.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `d70db13` · Spread co-located clusters with micro-jitter
 
 Many sites share an exact lat/lng — multi-phase builds at one address
