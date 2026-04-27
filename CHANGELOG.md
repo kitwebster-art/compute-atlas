@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · MW → GW everywhere a single cluster's power displays
+### `694cb7f` · MW → GW everywhere a single cluster's power displays
 
 Auto-promotion of MW values ≥ 1000 → GW now also applies to:
 
@@ -52,7 +52,7 @@ Single shared `fmtMwCompact()` helper used everywhere a cluster's
 power renders, so a 2200 MW Stargate phase reads "2.20 GW" instead of
 "2.2k MW" in every UI surface.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 694cb7f`
 
 ---
 
