@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · 34 community-curated cluster additions (incl. Australia)
+### `3a4b1b0` · 34 community-curated cluster additions (incl. Australia)
 
 Epoch's CSV had a notable gap in coverage of recent (2024–2026) AI
 buildouts and certain regions (most of Australia, much of India,
@@ -79,7 +79,7 @@ Total clusters now **725** (up from 691). Total tracked power **64.9 GW**
 with the 3 GW Jamnagar build; AWS,Anthropic enters at #10 via Project
 Rainier (2.4 GW).
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert 3a4b1b0`
 
 ---
 
