@@ -315,6 +315,60 @@
       margin-top: 16px; font-size: 10px; color: var(--text-muted);
       text-align: center; letter-spacing: 0.2em; text-transform: uppercase;
     }
+    /* Context modal — multi-topic explainer */
+    .context-overlay .card { max-width: 680px; padding: 32px 36px; }
+    .context-header h3 {
+      font-size: 11px !important; letter-spacing: 0.4em;
+      color: var(--accent); margin-bottom: 4px !important; font-weight: 600;
+    }
+    .context-header { padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    .context-header .context-sub {
+      font-size: 13px; color: var(--text-dim); line-height: 1.5;
+      letter-spacing: 0; text-transform: none; font-weight: 400;
+    }
+    .context-nav {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+      padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    }
+    .context-nav .ctx-tab {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      color: var(--text-dim); cursor: pointer; padding: 6px 12px;
+      border-radius: 16px; font-size: 11px; font-family: inherit;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .context-nav .ctx-tab:hover {
+      color: var(--accent); border-color: rgba(212,175,55,0.4);
+    }
+    .context-nav .ctx-tab.active {
+      background: rgba(212,175,55,0.12); border-color: var(--accent);
+      color: var(--accent);
+    }
+    .context-body {
+      font-size: 13px; line-height: 1.65; color: var(--text);
+    }
+    .context-body .topic-headline {
+      font-size: 17px; line-height: 1.35; color: var(--text);
+      margin-bottom: 12px; font-weight: 500;
+    }
+    .context-body .topic-body {
+      color: var(--text-dim); margin-bottom: 14px;
+    }
+    .context-body .topic-pullquote {
+      border-left: 2px solid var(--accent); padding: 8px 14px;
+      background: rgba(212,175,55,0.05); margin: 14px 0;
+      font-style: italic; color: var(--text); font-size: 13px;
+    }
+    .context-body .topic-sources {
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .context-body .topic-sources a {
+      font-size: 11px; color: var(--text-muted); text-decoration: none;
+    }
+    .context-body .topic-sources a:hover { color: var(--accent); }
+    .context-body .topic-sources .src-publisher {
+      color: var(--accent); margin-right: 6px;
+    }
     .filter-row select option { background: #0a0e18; color: var(--text); }
     .size-mode {
       display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap;
@@ -1100,6 +1154,8 @@
   <span class="sep">·</span>
   <span id="dataStamp" title="Last data refresh">—</span>
   <span class="sep">·</span>
+  <a href="#" id="contextLink" style="color:var(--text-muted);text-decoration:none;">Context</a>
+  <span class="sep">·</span>
   <a href="#" id="aboutLink" style="color:var(--text-muted);text-decoration:none;">About</a>
   <span class="sep">·</span>
   <a href="#" id="kbdHint" style="color:var(--text-muted);text-decoration:none;">Press <span style="font-family:var(--mono);background:rgba(255,255,255,0.04);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">?</span></a>
@@ -1164,6 +1220,19 @@
       with Globe.gl. Data by <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI</a> (CC BY).
       Source on <a href="https://github.com/kitwebster-art/compute-atlas" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">GitHub</a>.
     </div>
+    <div class="close-hint">Press Esc to close</div>
+  </div>
+</div>
+
+<!-- Context modal — geopolitics, chip ecosystems, the AI compute story -->
+<div class="kbd-overlay context-overlay" id="contextOverlay">
+  <div class="card" style="max-width:680px;">
+    <div class="context-header">
+      <h3>The story behind the dots</h3>
+      <div class="context-sub">Why this map looks the way it does · the geopolitics, chips, and energy beneath the AI buildout</div>
+    </div>
+    <nav class="context-nav" id="contextNav"><!-- topic tabs injected --></nav>
+    <div class="context-body" id="contextBody"><!-- topic content injected --></div>
     <div class="close-hint">Press Esc to close</div>
   </div>
 </div>
@@ -2887,6 +2956,61 @@ window.addEventListener('unhandledrejection', (e) => {
   aboutOverlay?.addEventListener('click', e => {
     if (e.target === aboutOverlay) aboutOverlay.classList.remove('visible');
   });
+
+  // ─── Context modal — geopolitics & infrastructure explainers ───
+  const contextOverlay = document.getElementById('contextOverlay');
+  const contextLink = document.getElementById('contextLink');
+  let contextTopics = [];
+  let contextActiveId = null;
+  async function loadContextTopics() {
+    try {
+      const r = await fetch('./context_topics.json');
+      if (!r.ok) return;
+      const j = await r.json();
+      contextTopics = j.topics || [];
+      if (contextTopics.length && !contextActiveId) contextActiveId = contextTopics[0].id;
+      renderContextTabs();
+      renderContextBody();
+    } catch (e) { console.warn('Failed to load context topics:', e); }
+  }
+  function renderContextTabs() {
+    const nav = document.getElementById('contextNav');
+    if (!nav) return;
+    nav.innerHTML = contextTopics.map(t => `<button class="ctx-tab${t.id === contextActiveId ? ' active' : ''}" data-topic="${escapeHtml(t.id)}">${escapeHtml(t.tab || t.headline)}</button>`).join('');
+    nav.querySelectorAll('.ctx-tab').forEach(b => {
+      b.addEventListener('click', () => {
+        contextActiveId = b.dataset.topic;
+        renderContextTabs();
+        renderContextBody();
+      });
+    });
+  }
+  function renderContextBody() {
+    const body = document.getElementById('contextBody');
+    if (!body) return;
+    const t = contextTopics.find(x => x.id === contextActiveId) || contextTopics[0];
+    if (!t) { body.innerHTML = ''; return; }
+    const sources = (t.sources || []).map(s => {
+      const url = typeof s === 'string' ? s : s.url;
+      const pub = typeof s === 'string' ? '' : (s.publisher || '');
+      const title = typeof s === 'string' ? s : (s.headline || s.title || s.url);
+      return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${pub ? `<span class="src-publisher">${escapeHtml(pub)}</span>` : ''}${escapeHtml(title)}</a>`;
+    }).join('');
+    body.innerHTML = `
+      <div class="topic-headline">${escapeHtml(t.headline || '')}</div>
+      <div class="topic-body">${(t.body || '').replace(/\n/g, '<br>')}</div>
+      ${t.pullquote ? `<div class="topic-pullquote">${escapeHtml(t.pullquote)}</div>` : ''}
+      ${sources ? `<div class="topic-sources"><div style="font-size:9px;color:var(--text-muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Sources</div>${sources}</div>` : ''}
+    `;
+  }
+  loadContextTopics();
+  contextLink?.addEventListener('click', e => {
+    e.preventDefault();
+    contextOverlay?.classList.add('visible');
+  });
+  contextOverlay?.addEventListener('click', e => {
+    if (e.target === contextOverlay) contextOverlay.classList.remove('visible');
+  });
   const copyEmbed = document.getElementById('copyEmbed');
   copyEmbed?.addEventListener('click', () => {
     const code = document.getElementById('embedCode')?.textContent || '';
@@ -2977,6 +3101,10 @@ window.addEventListener('unhandledrejection', (e) => {
     if (e.key === 'Escape') {
       if (compareModal.classList.contains('visible')) {
         closeCompareModal();
+        return;
+      }
+      if (contextOverlay?.classList.contains('visible')) {
+        contextOverlay.classList.remove('visible');
         return;
       }
       if (aboutOverlay?.classList.contains('visible')) {
