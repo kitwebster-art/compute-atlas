@@ -315,6 +315,23 @@
       margin-top: 16px; font-size: 10px; color: var(--text-muted);
       text-align: center; letter-spacing: 0.2em; text-transform: uppercase;
     }
+    /* Floating contextual hint when filter reveals a coverage gap */
+    .coverage-hint {
+      position: fixed; left: 50%; bottom: 124px; transform: translate(-50%, 18px);
+      max-width: 480px; padding: 10px 16px; z-index: 12;
+      background: rgba(10, 14, 24, 0.94);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 8px; backdrop-filter: blur(8px);
+      font-size: 12px; line-height: 1.5; color: var(--text);
+      letter-spacing: 0; text-transform: none;
+      cursor: pointer; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .coverage-hint.visible { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+    .coverage-hint:hover { border-color: var(--accent); background: rgba(20, 24, 36, 0.96); }
+    body.press-mode .coverage-hint, body.embed-mode .coverage-hint { display: none; }
+
     /* Context modal — multi-topic explainer */
     .context-overlay .card { max-width: 680px; padding: 32px 36px; }
     .context-header h3 {
@@ -1237,6 +1254,8 @@
   </div>
 </div>
 
+<div class="coverage-hint" id="coverageHint" role="button" tabindex="0"></div>
+
 <div class="press-hint" id="pressHint">Press mode · Press H to exit</div>
 
 <a class="embed-badge" id="embedBadge" href="https://flopmap.com" target="_blank" rel="noopener">FLOP Map → open full</a>
@@ -1996,12 +2015,35 @@ window.addEventListener('unhandledrejection', (e) => {
   container.addEventListener('wheel', pauseAutoRotate, { passive: true });
 
   // Filter + apply
+  // Contextual hint shown when filters reveal a known coverage gap
+  function updateCoverageHint(country) {
+    const hint = document.getElementById('coverageHint');
+    if (!hint) return;
+    const c = (country || '').toLowerCase();
+    let topicId = null, msg = '';
+    if (/china/.test(c)) {
+      topicId = 'china_silicon';
+      msg = 'Why so few clusters in China? Most run on domestic Huawei/Cambricon chips and the locations are deliberately undisclosed. Read why →';
+    } else if (/russ/.test(c)) {
+      topicId = 'russia';
+      msg = 'Why is Russia almost empty? Sanctions cut off Nvidia/AMD shipments in 2022 and disclosure went dark. The whole story →';
+    }
+    if (topicId) {
+      hint.dataset.topicId = topicId;
+      hint.textContent = msg;
+      hint.classList.add('visible');
+    } else {
+      hint.classList.remove('visible');
+    }
+  }
+
   function applyFilters() {
     const status = document.getElementById('filterStatus').value;
     const owner = (document.getElementById('filterOwner').value || '').trim();
     const country = (document.getElementById('filterCountry').value || '').trim();
     const sector = (document.getElementById('filterSector').value || '').trim();
     const minMW = numeric(document.getElementById('filterMinMW').value) || 0;
+    updateCoverageHint(country !== 'all' ? country : null);
 
     const filtered = rows.filter(r => {
       if (status !== 'all') {
@@ -3007,6 +3049,20 @@ window.addEventListener('unhandledrejection', (e) => {
   contextLink?.addEventListener('click', e => {
     e.preventDefault();
     contextOverlay?.classList.add('visible');
+  });
+  // Coverage hint click → open Context modal at the right tab
+  const coverageHint = document.getElementById('coverageHint');
+  function openContextAt(topicId) {
+    if (topicId && contextTopics.find(t => t.id === topicId)) {
+      contextActiveId = topicId;
+      renderContextTabs();
+      renderContextBody();
+    }
+    contextOverlay?.classList.add('visible');
+  }
+  coverageHint?.addEventListener('click', () => openContextAt(coverageHint.dataset.topicId));
+  coverageHint?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') openContextAt(coverageHint.dataset.topicId);
   });
   contextOverlay?.addEventListener('click', e => {
     if (e.target === contextOverlay) contextOverlay.classList.remove('visible');
