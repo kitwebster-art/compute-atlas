@@ -2164,7 +2164,10 @@ window.addEventListener('unhandledrejection', (e) => {
     // big bar over a continent and miss that there are siblings stacked
     // at different addresses (e.g. xAI's 5 Memphis builds across 2 lots).
     const narrowFilter = (owner !== 'all' || country !== 'all');
-    if (narrowFilter && filtered.length >= 1 && filtered.length <= 30) {
+    // Always fly when a country/operator filter is active — even for
+    // big buckets like United States. autoFitCamera picks the largest
+    // visible cluster as anchor and zooms appropriately.
+    if (narrowFilter && filtered.length >= 1 && filtered.length <= 400) {
       autoFitCamera(filtered);
     }
     console.log('[Compute Atlas] filter applied:', { status, owner, country, minMW, year: timelineActive ? timelineYear : 'all', shown: filtered.length, view: viewMode });
@@ -2178,8 +2181,17 @@ window.addEventListener('unhandledrejection', (e) => {
     const pts = data.filter(r => r.lat != null && r.lng != null && r.mw);
     if (!pts.length) return;
     if (world.controls) world.controls().autoRotate = false;
-    // Anchor: the largest cluster
-    const anchor = pts.slice().sort((a, b) => (b.mw || 0) - (a.mw || 0))[0];
+    // Anchor: the largest cluster that has a SPECIFIC location.
+    // Epoch uses country-centroid placeholders when the exact site isn't
+    // public (location string empty or just the country name) — flying
+    // there lands the camera in random farmland. Prefer real addresses.
+    const isSpecific = r => {
+      const loc = (r.location || '').trim();
+      const country = (r.country || '').trim();
+      return loc && loc.toLowerCase() !== country.toLowerCase();
+    };
+    const sorted = pts.slice().sort((a, b) => (b.mw || 0) - (a.mw || 0));
+    const anchor = sorted.find(isSpecific) || sorted[0];
     const aLat = anchor._origLat ?? anchor.lat;
     const aLng = anchor._origLng ?? anchor.lng;
     if (pts.length === 1) {
@@ -2210,13 +2222,13 @@ window.addEventListener('unhandledrejection', (e) => {
     // Duration 0 — animated transitions occasionally don't take effect
     // (autoRotate fight, browser-throttled tween). Snap is reliable.
     world.pointOfView({ lat: aLat, lng: aLng, altitude: alt }, 0);
-    // Auto-open the largest visible cluster's detail panel so the user
-    // can immediately read its specs and use the "Other [Operator]
-    // clusters" list to switch between siblings — the most reliable way
-    // to make multi-phase deployments discoverable.
-    setTimeout(() => {
-      if (typeof showDetail === 'function') showDetail(anchor);
-    }, 100);
+    // For tight result sets (e.g. an operator with 5–10 clusters), auto-
+    // open the largest cluster's detail panel so the "Other clusters"
+    // list inside acts as a sibling navigator. Skip for big buckets like
+    // "United States" — there opening one specific panel feels arbitrary.
+    if (pts.length <= 10 && typeof showDetail === 'function') {
+      setTimeout(() => showDetail(anchor), 100);
+    }
   }
 
   function renderStatusMix(data, totalMW) {
@@ -2319,8 +2331,10 @@ window.addEventListener('unhandledrejection', (e) => {
       row.addEventListener('click', () => {
         const name = row.dataset.owner;
         const sel = document.getElementById('filterOwner');
-        sel.value = (sel.value === name) ? 'all' : name;
+        const turningOff = sel.value === name;
+        sel.value = turningOff ? 'all' : name;
         applyFilters();
+        if (!turningOff) autoFitCamera(window._filtered || []);
       });
     });
 
@@ -2358,8 +2372,13 @@ window.addEventListener('unhandledrejection', (e) => {
       r.addEventListener('click', () => {
         const sel = document.getElementById('filterCountry');
         const name = r.dataset.country;
-        sel.value = sel.value === name ? 'all' : name;
+        const turningOff = sel.value === name;
+        sel.value = turningOff ? 'all' : name;
         applyFilters();
+        // Always fly to the country when activating the filter — even if
+        // many clusters, autoFitCamera picks the largest as the anchor
+        // and zooms to fit nearby siblings.
+        if (!turningOff) autoFitCamera(window._filtered || []);
       });
     });
   }
