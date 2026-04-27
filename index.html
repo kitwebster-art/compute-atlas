@@ -70,6 +70,12 @@
       font-size: 10px; color: var(--text-dim);
       font-family: var(--mono); letter-spacing: 0.08em;
     }
+    .counter .dataset-credit {
+      display: block; margin-top: 4px;
+      font-size: 8px; color: var(--text-muted);
+      letter-spacing: 0.15em; text-transform: uppercase;
+    }
+    .counter .dataset-credit strong { color: var(--accent); font-weight: 500; margin-right: 1px; }
     .counter .stats-line strong {
       color: var(--accent); font-weight: 500; margin-right: 2px;
     }
@@ -1034,8 +1040,9 @@
     <div class="tagline">Every named AI training cluster, live on a globe</div>
   </div>
   <div class="counter">
-    <span class="big" id="visibleCount">—</span>
+    <span class="big" id="visibleCount" title="—">—</span>
     <span>CLUSTERS SHOWN</span>
+    <span class="dataset-credit" id="datasetCredit"></span>
     <span class="stats-line" id="visibleStats"></span>
     <div class="status-mix" id="statusMix" title="Power split: operational vs under construction vs planned"></div>
   </div>
@@ -2087,6 +2094,15 @@ window.addEventListener('unhandledrejection', (e) => {
     window._filtered = filtered;
     renderView(filtered);
     document.getElementById('visibleCount').textContent = filtered.length.toLocaleString();
+    // Credit line: how many of the visible came from Epoch vs FLOP Map additions
+    const credEl = document.getElementById('datasetCredit');
+    if (credEl) {
+      const epochCount = filtered.filter(r => !r._flopmapAdded).length;
+      const fmCount = filtered.length - epochCount;
+      credEl.innerHTML = fmCount > 0
+        ? `<strong>${epochCount}</strong> Epoch · <strong>+${fmCount}</strong> FLOP Map`
+        : `<strong>${epochCount}</strong> Epoch AI dataset`;
+    }
     // Totals strip under the counter
     const totalMW = filtered.reduce((s, r) => s + (r.mw || 0), 0);
     const totalH100 = filtered.reduce((s, r) => s + (r.h100 || 0), 0);
