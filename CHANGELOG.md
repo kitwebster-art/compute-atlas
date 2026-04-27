@@ -40,6 +40,27 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Tighten scope language: "AI cluster" not "GPU cluster", explain the gap
+
+People Google "data centers worldwide" and see ~11,000–11,800. FLOP
+Map shows ~725. That's because we track named **AI compute clusters**
+with public disclosure, not all data centres (most of which are
+enterprise IT / telco / retail back-end / edge / colocation that
+hosts no AI workload).
+
+Two changes to make this unambiguous:
+
+- **Tagline**: "Every known GPU cluster" → "Every named AI training
+  cluster, live on a globe". Same change applied to OG / Twitter
+  card descriptions.
+- **About modal**: new "Why ~700, not 11,000?" section explaining the
+  scope distinction explicitly. Updated Data &amp; caveats to mention
+  the 34 FLOP Map additions and that China is under-covered.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `3a4b1b0` · 34 community-curated cluster additions (incl. Australia)
 
 Epoch's CSV had a notable gap in coverage of recent (2024–2026) AI

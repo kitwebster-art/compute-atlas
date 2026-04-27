@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FLOP Map — The World's AI Compute, Live</title>
-  <meta name="description" content="A live 3D map of global AI compute. Every known GPU cluster, data centre, and FLOP, visualised on an interactive globe. Data from Epoch AI.">
+  <meta name="description" content="A live 3D map of the world's named AI compute clusters. ~700+ disclosed GPU/TPU sites visualised on an interactive globe. Data from Epoch AI plus FLOP Map additions.">
   <meta property="og:title" content="FLOP Map — The World's AI Compute, Live">
-  <meta property="og:description" content="A live 3D map of global AI compute. Every known GPU cluster, visualised.">
+  <meta property="og:description" content="A live 3D map of every named AI compute cluster on earth. ~700+ disclosed GPU/TPU sites, visualised.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://flopmap.com">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="FLOP Map — The World's AI Compute, Live">
-  <meta name="twitter:description" content="A live 3D map of global AI compute. Every known GPU cluster, visualised.">
+  <meta name="twitter:description" content="A live 3D map of every named AI compute cluster on earth. ~700+ disclosed GPU/TPU sites, visualised.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23d4af37'/%3E%3Ccircle cx='50' cy='50' r='38' fill='%23050710'/%3E%3Ccircle cx='35' cy='42' r='3' fill='%23ff3c3c'/%3E%3Ccircle cx='60' cy='55' r='4' fill='%23ffd60a'/%3E%3Ccircle cx='48' cy='65' r='2.5' fill='%234ad188'/%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -946,7 +946,7 @@
   <div class="brand">
     <div class="eyebrow">FLOP Map</div>
     <h1>The World's AI Compute</h1>
-    <div class="tagline">Every known GPU cluster, live on a globe</div>
+    <div class="tagline">Every named AI training cluster, live on a globe</div>
   </div>
   <div class="counter">
     <span class="big" id="visibleCount">—</span>
@@ -1113,12 +1113,25 @@
       Press <span style="font-family:var(--mono);background:rgba(255,255,255,0.04);padding:1px 5px;border-radius:3px;border:1px solid var(--border);">?</span>
       for keyboard shortcuts.
     </div>
-    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Data & caveats</div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Why ~700, not 11,000?</div>
     <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
-      Data comes from Epoch AI under CC BY. 253 anonymised Chinese clusters share
-      one centroid (35.5N, 101.9E) — heatmap reads this correctly but the raw dot
-      count is misleading. Many planned sites lack power or FLOP/s estimates.
-      Not every cluster on earth is here; this is the best public dataset we have.
+      Recent estimates put the world's total <em>data centre</em> count at
+      <strong>~11,000–11,800</strong>. FLOP Map is a much narrower scope:
+      named <strong>AI compute</strong> sites with public disclosure of operator,
+      location, and hardware. Most of the 11k+ are enterprise IT, telco, retail
+      back-end, edge, or hyperscale colocation that hosts no AI workload.
+      Of the few thousand sites that do run meaningful AI compute, only a few
+      hundred have detailed-enough public information to map. That's our set.
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Data &amp; caveats</div>
+    <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
+      Source: <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>
+      (CC BY) plus 34 community-curated additions maintained by FLOP Map.
+      253 anonymised Chinese clusters share one centroid (35.5°N, 101.9°E) —
+      heatmap reads this correctly but the raw dot count is misleading. Many
+      planned sites lack power or FLOP/s estimates. China is heavily
+      under-covered; smaller US hyperscaler footprints aren't enumerated
+      individually. This is the best public dataset we have.
     </div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Embed</div>
     <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:8px;">
