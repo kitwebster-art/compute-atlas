@@ -2441,7 +2441,7 @@ window.addEventListener('unhandledrejection', (e) => {
 
       <div class="section">
         <div class="section-title">Trained on · ${trainingClusters.length} cluster${trainingClusters.length === 1 ? '' : 's'}</div>
-        ${trainingClusters.length ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">${fmtNum(totalMW)} MW · ${fmtNum(totalH100)} H100-eq combined</div>` : ''}
+        ${trainingClusters.length ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">${fmtMwCompact(totalMW)} · ${fmtNum(totalH100)} H100-eq combined</div>` : ''}
         <div class="model-cluster-list">${clusterRows}</div>
       </div>
 
