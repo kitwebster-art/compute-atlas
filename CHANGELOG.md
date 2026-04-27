@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Tighten scope language: "AI cluster" not "GPU cluster", explain the gap
+### `f7b2772` · Tighten scope language: "AI cluster" not "GPU cluster", explain the gap
 
 People Google "data centers worldwide" and see ~11,000–11,800. FLOP
 Map shows ~725. That's because we track named **AI compute clusters**
@@ -57,7 +57,7 @@ Two changes to make this unambiguous:
   scope distinction explicitly. Updated Data &amp; caveats to mention
   the 34 FLOP Map additions and that China is under-covered.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert f7b2772`
 
 ---
 
