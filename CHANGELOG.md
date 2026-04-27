@@ -40,6 +40,49 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · 34 community-curated cluster additions (incl. Australia)
+
+Epoch's CSV had a notable gap in coverage of recent (2024–2026) AI
+buildouts and certain regions (most of Australia, much of India,
+Africa, recent Stargate sites). After deep research with sourced
+public disclosures, added **34 clusters** in a separate
+`flopmap_additions.json` so attribution stays clean (Epoch CSV remains
+unmodified under CC-BY).
+
+Highlights:
+
+- **Australia (7):** AirTrunk MEL1, AirTrunk MEL2 AI Campus, Sharon AI
+  Supercluster at NextDC M3, Firmus Project Southgate Melbourne,
+  Firmus Project Southgate Tasmania, CSIRO Virga at CDC Hume, CDC
+  Marsden Park.
+- **India (5):** Yotta NM1 Shakti Cloud, Reliance Jamnagar 3 GW,
+  Adani-Google Visakhapatnam, Krutrim Bengaluru, Tata Communications.
+- **Japan / Korea (5):** SoftBank Tomakomai, ABCI 3.0 Kashiwa, Naver
+  GAK Sejong, SK-AWS Ulsan, KT Cloud Gasan.
+- **Europe (6):** Isambard-AI Bristol, JUPITER Jülich, CSCS Alps Lugano,
+  Mistral Bruyères-le-Châtel, Deutsche Telekom Munich, Lefdal Mine,
+  Verne Iceland.
+- **ME / Africa (3):** HUMAIN Riyadh AI Factory, NVIDIA Israel-1
+  Yokne'am, Cassava South Africa.
+- **US 2025+ (5):** Microsoft Fairwater Atlanta, Microsoft Fairwater
+  Mt Pleasant, AWS Project Rainier (Anthropic), Stargate Shackelford,
+  Lordstown, Doña Ana.
+- **SEA (1):** YTL AI Cloud Johor.
+
+Each addition has 1–2 public sources and a certainty rating
+(Confirmed | Likely | Speculative). Detail panel shows a "★ FLOP Map
+addition" chip alongside the existing certainty pill so users know
+which clusters are Epoch's vs ours.
+
+Total clusters now **725** (up from 691). Total tracked power **64.9 GW**
+(up from 55.2 GW). Reliance Industries enters the leaderboard at #5
+with the 3 GW Jamnagar build; AWS,Anthropic enters at #10 via Project
+Rainier (2.4 GW).
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `694cb7f` · MW → GW everywhere a single cluster's power displays
 
 Auto-promotion of MW values ≥ 1000 → GW now also applies to:

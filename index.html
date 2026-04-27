@@ -1281,6 +1281,45 @@ window.addEventListener('unhandledrejection', (e) => {
     };
   }).filter(Boolean);
 
+  // ─── Merge community additions (FLOP Map curated additions) ───
+  // Loaded from a separate JSON to preserve attribution (Epoch CSV is
+  // CC-BY) and let the UI tag them with a "FLOP Map addition" badge.
+  try {
+    const addResp = await fetch('./flopmap_additions.json');
+    if (addResp.ok) {
+      const data = await addResp.json();
+      const addClusters = (data.clusters || []).map(a => ({
+        name: a.name, owner: a.owner || 'Unknown',
+        country: a.country, location: a.location,
+        status: a.status,
+        lat: a.lat, lng: a.lng,
+        mw: typeof a.mw === 'number' ? a.mw : null,
+        h100: typeof a.h100 === 'number' ? a.h100 : null,
+        flops: null, flopsLog: null,
+        chipType: a.chip_type, chipQty: null, chipType2: null, chipQty2: null,
+        totalChips: null,
+        gpuSupplier: a.chip_type?.split(' ')?.[0] || null, gpuSupplier2: null,
+        firstOp: a.first_op, firstOpYear: parseYear(a.first_op),
+        firstOpNote: null, note: a.note, quote: null,
+        sector: null, users: null,
+        certainty: a.certainty,
+        certaintyNote: null, hardwareNote: null, noteworthy: null,
+        hardwareCost: null, calcCost: null, reportedCost: null,
+        reportedCostInfl: null, costQuote: null, energyEfficiency: null,
+        flops8: null, flops16: null, flops32: null,
+        rankAtStart: null, pctOfLargest: null,
+        buildsUpon: null, supersededBy: null, decommissioned: null,
+        singleCluster: null,
+        sources: a.sources || [],
+        _flopmapAdded: true,
+      })).filter(r => r.lat != null && r.lng != null);
+      rows.push(...addClusters);
+      console.log(`Merged ${addClusters.length} FLOP Map curated additions`);
+    }
+  } catch (e) {
+    console.warn('Failed to load FLOP Map additions:', e);
+  }
+
   console.log(`Loaded ${rows.length} compute clusters`);
 
   // ─── Jitter co-located clusters so click-targets don't overlap ───
@@ -2267,6 +2306,7 @@ window.addEventListener('unhandledrejection', (e) => {
         ${homesPowered ? `<span class="context-chip neutral">Powers ~${fmtNum(homesPowered)} homes</span>` : ''}
         ${d.rankAtStart ? `<span class="context-chip">#${d.rankAtStart} largest at launch</span>` : ''}
         ${d.certainty ? `<span class="context-chip neutral">Certainty: ${escapeHtml(d.certainty)}</span>` : ''}
+        ${d._flopmapAdded ? `<span class="context-chip" style="background:rgba(212,175,55,0.12);border-color:rgba(212,175,55,0.4);color:var(--accent);" title="Curated by FLOP Map — not part of Epoch AI's official dataset.">★ FLOP Map addition</span>` : ''}
         ${d.noteworthy && /^(true|yes|y)$/i.test(d.noteworthy.trim()) ? `<span class="context-chip">★ Noteworthy</span>` : ''}
       </div>
 
