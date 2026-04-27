@@ -2576,6 +2576,29 @@ window.addEventListener('unhandledrejection', (e) => {
         ` : ''}
       </div>` : ''}
 
+      ${(() => {
+        // Other clusters at exactly the same site (multi-phase builds, sister deployments).
+        // Use original coords (pre-jitter) so we don't miss any.
+        const myLat = (d._origLat ?? d.lat).toFixed(5);
+        const myLng = (d._origLng ?? d.lng).toFixed(5);
+        const siblings = rows.filter(r => r !== d &&
+          (r._origLat ?? r.lat).toFixed(5) === myLat &&
+          (r._origLng ?? r.lng).toFixed(5) === myLng);
+        if (siblings.length === 0) return '';
+        // Cap UI at 8 — for the China centroid (253 siblings) we just show count.
+        const tooMany = siblings.length > 8;
+        const shown = tooMany ? siblings.slice(0, 0) : siblings;
+        return `<div class="section">
+          <div class="section-title">${siblings.length} other cluster${siblings.length === 1 ? '' : 's'} at this site</div>
+          ${tooMany
+            ? `<div class="note" style="color:var(--text-muted);">${siblings.length} other clusters share these coordinates (likely the anonymised China centroid). Use search to find specific ones.</div>`
+            : shown.map(s => `<div class="model-cluster-row" data-sibling-name="${escapeHtml(s.name || '')}">
+                <div class="name">${escapeHtml(s.name || 'Unnamed')}</div>
+                <div class="meta">${escapeHtml(s.status || '')}${s.mw ? ` · ${s.mw >= 1000 ? (s.mw/1000).toFixed(2) + ' GW' : Math.round(s.mw) + ' MW'}` : ''}${s.firstOpYear ? ` · ${s.firstOpYear}` : ''}</div>
+              </div>`).join('')}
+        </div>`;
+      })()}
+
       ${d.sources.length ? `<div class="section sources">
         <div class="section-title">Sources (${d.sources.length})</div>
         ${d.sources.map(s => `<a href="${escapeHtml(s)}" target="_blank" rel="noopener">${escapeHtml(truncUrl(s))}</a>`).join('')}
@@ -2629,6 +2652,14 @@ window.addEventListener('unhandledrejection', (e) => {
       chip.addEventListener('click', () => {
         const m = FRONTIER_MODELS.find(x => x.id === chip.dataset.modelId);
         if (m) showModelDetail(m);
+      });
+    });
+
+    // Wire sibling rows → switch detail panel to that cluster
+    panelContent.querySelectorAll('.model-cluster-row[data-sibling-name]').forEach(row => {
+      row.addEventListener('click', () => {
+        const sib = rows.find(r => r.name === row.dataset.siblingName);
+        if (sib) showDetail(sib);
       });
     });
 
