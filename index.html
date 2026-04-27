@@ -1298,6 +1298,7 @@
     <div class="row"><span>Points view</span><div class="keys"><span>1</span></div></div>
     <div class="row"><span>Heatmap view</span><div class="keys"><span>2</span></div></div>
     <div class="row"><span>Hex-bin view</span><div class="keys"><span>3</span></div></div>
+    <div class="row"><span>Frontier models view</span><div class="keys"><span>4</span></div></div>
     <div class="row"><span>Close detail panel</span><div class="keys"><span>Esc</span></div></div>
     <div class="row"><span>Reset globe view</span><div class="keys"><span>R</span></div></div>
     <div class="row"><span>Surprise me</span><div class="keys"><span>S</span></div></div>
@@ -3292,6 +3293,7 @@ window.addEventListener('unhandledrejection', (e) => {
     if (e.key === '1') { e.preventDefault(); selectViewMode('points'); }
     else if (e.key === '2') { e.preventDefault(); selectViewMode('heatmap'); }
     else if (e.key === '3') { e.preventDefault(); selectViewMode('hex'); }
+    else if (e.key === '4') { e.preventDefault(); selectViewMode('models'); }
     else if (e.key === 'r' || e.key === 'R') {
       e.preventDefault();
       world.pointOfView({ lat: 20, lng: 20, altitude: 2.3 }, 900);
