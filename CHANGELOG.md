@@ -40,6 +40,27 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Spread co-located clusters with micro-jitter
+
+Many sites share an exact lat/lng — multi-phase builds at one address
+(e.g. Nebius Kansas City Phase 1 & 2 both at 39.098, -94.579). Bars
+overlapped, so clicking the visible green bar would surface a different
+co-located cluster's detail panel ("Nebius Phase 2 / Planned" returned
+when you clicked the green Phase 1 dot).
+
+Now we group identical-coord clusters and offset the smaller members
+in a deterministic ~90 m spiral around the largest. Each bar gets its
+own raycast hit zone. Detail panel and Maps link still show the
+original coordinates via `_origLat` / `_origLng` so we don't pretend
+the geography is more precise than it is.
+
+The 253-row anonymised Chinese centroid group is exempt (>10 members)
+to avoid inventing fake locations across actual provinces.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `ab5a8b8` · Drop scale toggle, use linear altitude + chunky radius floor
 
 The Soft/Linear toggle didn't solve the problem — Soft mode still hid

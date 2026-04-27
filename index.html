@@ -1283,6 +1283,41 @@ window.addEventListener('unhandledrejection', (e) => {
 
   console.log(`Loaded ${rows.length} compute clusters`);
 
+  // ─── Jitter co-located clusters so click-targets don't overlap ───
+  // Many sites in the dataset share exact lat/lng (e.g. multi-phase
+  // builds at one address, or the 253 anonymised Chinese clusters all
+  // sharing one centroid). Identical coords mean Globe.gl picks an
+  // unpredictable cluster on click. We push the 2nd, 3rd, … members of
+  // each duplicate group out in a small deterministic spiral so each
+  // bar gets its own raycast hit zone. Original coords are preserved
+  // on `_origLat`/`_origLng` for the detail panel and Maps link.
+  // We skip jittering the giant Chinese-centroid group (>10 members)
+  // so we don't invent fake geography across actual provinces.
+  (() => {
+    const groups = new Map();
+    for (const r of rows) {
+      const key = `${r.lat.toFixed(5)},${r.lng.toFixed(5)}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(r);
+    }
+    for (const group of groups.values()) {
+      if (group.length < 2 || group.length > 10) continue;
+      // Tiny radius — ~0.0008° ≈ 90m on the ground. Enough for raycast
+      // separation, invisible at the default zoom level.
+      const radius = 0.0008;
+      // Sort by descending weight so the largest stays at origin
+      group.sort((a, b) => (b.mw || 0) - (a.mw || 0));
+      group.forEach((r, i) => {
+        r._origLat = r.lat;
+        r._origLng = r.lng;
+        if (i === 0) return;
+        const angle = (i / group.length) * Math.PI * 2;
+        r.lat = r.lat + Math.cos(angle) * radius;
+        r.lng = r.lng + Math.sin(angle) * radius / Math.cos(r.lat * Math.PI / 180);
+      });
+    }
+  })();
+
   // ─────────────────────────────────────────────────────────────────────
   //  FRONTIER MODELS — curated list of notable AI models linked to the
   //  clusters that trained them. Where a cluster name explicitly references
@@ -2215,7 +2250,10 @@ window.addEventListener('unhandledrejection', (e) => {
     const countryTrim = (d.country || '').trim();
     const locIsSpecific = locTrim && locTrim.toLowerCase() !== countryTrim.toLowerCase();
     // Prefer the location string for the Maps query (more reliable for confirmed addresses)
-    const mapsQuery = locIsSpecific ? locTrim : `${d.lat},${d.lng}`;
+    // Use original (un-jittered) coords for the Maps link so we don't drift the pin by ~90m.
+    const trueLat = d._origLat ?? d.lat;
+    const trueLng = d._origLng ?? d.lng;
+    const mapsQuery = locIsSpecific ? locTrim : `${trueLat},${trueLng}`;
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
 
     panelContent.innerHTML = `
@@ -2274,7 +2312,7 @@ window.addEventListener('unhandledrejection', (e) => {
         <div class="section-title">Site &amp; Timeline</div>
         ${d.location ? `<div class="spec-row"><span class="label">Location</span><span class="value">${escapeHtml(d.location)}</span></div>` : ''}
         ${d.country ? `<div class="spec-row"><span class="label">Country</span><span class="value">${escapeHtml(d.country)}</span></div>` : ''}
-        <div class="spec-row"><span class="label">Coordinates</span><span class="value">${d.lat.toFixed(3)}, ${d.lng.toFixed(3)} <button class="copy-btn" data-copy="${d.lat},${d.lng}">Copy</button></span></div>
+        <div class="spec-row"><span class="label">Coordinates</span><span class="value">${trueLat.toFixed(3)}, ${trueLng.toFixed(3)} <button class="copy-btn" data-copy="${trueLat},${trueLng}">Copy</button></span></div>
         ${d.firstOp ? `<div class="spec-row"><span class="label">First operational</span><span class="value">${escapeHtml(d.firstOp)}</span></div>` : ''}
         ${d.decommissioned ? `<div class="spec-row"><span class="label">Decommissioned</span><span class="value">${escapeHtml(d.decommissioned)}</span></div>` : ''}
         ${d.buildsUpon ? `<div class="spec-row"><span class="label">Builds upon</span><span class="value">${escapeHtml(d.buildsUpon)}</span></div>` : ''}
