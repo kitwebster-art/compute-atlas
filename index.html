@@ -1237,6 +1237,11 @@
       with Globe.gl. Data by <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI</a> (CC BY).
       Source on <a href="https://github.com/kitwebster-art/compute-atlas" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">GitHub</a>.
     </div>
+    <div style="font-size:11px;line-height:1.55;color:var(--text-muted);margin-top:14px;padding:10px 12px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.18);border-radius:6px;">
+      <strong style="color:var(--accent);">Want the bigger picture?</strong>
+      Read <a href="#" id="aboutToContextLink" style="color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(212,175,55,0.4);">The story behind the dots</a>:
+      US chip export controls, Huawei vs Nvidia, sovereign AI, the energy crunch, and the scaling law.
+    </div>
     <div class="close-hint">Press Esc to close</div>
   </div>
 </div>
@@ -1888,6 +1893,21 @@ window.addEventListener('unhandledrejection', (e) => {
   }
 
   // ─── Models view: each frontier model rendered at its training cluster ───
+  // Brand colors for each major AI org — used in the Models view to make
+  // the ecosystem distinct at a glance.
+  const ORG_COLORS = {
+    'OpenAI': '#10a37f',
+    'Google DeepMind': '#4285f4',
+    'xAI': '#000000',
+    'Meta AI': '#0866ff',
+    'Anthropic': '#d97757',
+    'Mistral AI': '#fa520f',
+    'Huawei': '#c8102e',
+    'Alibaba': '#ff6a00',
+    'Tesla': '#cc0000',
+  };
+  const colorForOrg = org => ORG_COLORS[org] || '#d4af37';
+
   function applyModelsView(rawData) {
     clearHeatmap();
     world.pointsData([]).hexBinPointsData([]).heatmapsData([]);
@@ -1919,7 +1939,7 @@ window.addEventListener('unhandledrejection', (e) => {
       .pointsData(markers)
       .pointAltitude(d => d.alt)
       .pointRadius(d => d.rad)
-      .pointColor(() => '#d4af37')
+      .pointColor(d => colorForOrg(d.model.org))
       .pointResolution(8)
       .pointLabel(d => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(212,175,55,0.4);border-radius:6px;padding:10px 14px;font-family:Inter,sans-serif;color:#e8e8ec;max-width:280px;">
         <div style="font-size:10px;color:var(--accent);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:6px;">${escapeHtml(d.model.org)} · ${d.model.year}</div>
@@ -3050,6 +3070,13 @@ window.addEventListener('unhandledrejection', (e) => {
     e.preventDefault();
     contextOverlay?.classList.add('visible');
   });
+  // About → Context cross-link
+  document.getElementById('aboutToContextLink')?.addEventListener('click', e => {
+    e.preventDefault();
+    aboutOverlay?.classList.remove('visible');
+    contextOverlay?.classList.add('visible');
+  });
+
   // Coverage hint click → open Context modal at the right tab
   const coverageHint = document.getElementById('coverageHint');
   function openContextAt(topicId) {
@@ -3483,8 +3510,9 @@ window.addEventListener('unhandledrejection', (e) => {
       const modelChips = FRONTIER_MODELS.map(m => {
         const matches = clustersForModel(m).length;
         const dim = matches === 0 ? 'opacity:0.35;' : '';
+        const dotColor = colorForOrg(m.org);
         return `<div class="legend-model-row" data-model-id="${m.id}" style="${dim}" title="${escapeHtml(m.note || '')}">
-          <span class="dot"></span>
+          <span class="dot" style="background:${dotColor}"></span>
           <span class="name">${escapeHtml(m.name)}</span>
           <span class="org">${escapeHtml(m.org)} · ${m.year}</span>
         </div>`;
