@@ -2595,25 +2595,34 @@ window.addEventListener('unhandledrejection', (e) => {
       </div>` : ''}
 
       ${(() => {
-        // Other clusters at exactly the same site (multi-phase builds, sister deployments).
-        // Use original coords (pre-jitter) so we don't miss any.
-        const myLat = (d._origLat ?? d.lat).toFixed(5);
-        const myLng = (d._origLng ?? d.lng).toFixed(5);
-        const siblings = rows.filter(r => r !== d &&
-          (r._origLat ?? r.lat).toFixed(5) === myLat &&
-          (r._origLng ?? r.lng).toFixed(5) === myLng);
-        if (siblings.length === 0) return '';
-        // Cap UI at 8 — for the China centroid (253 siblings) we just show count.
-        const tooMany = siblings.length > 8;
-        const shown = tooMany ? siblings.slice(0, 0) : siblings;
+        // Related clusters by the same operator, sorted by distance.
+        // Catches both same-site siblings (Phase 1/2/3 at one address) and
+        // sister builds nearby (e.g. Colossus 1 lot vs Colossus 2 lot, ~13km apart).
+        const myOwner = (d.owner || '').trim();
+        if (!myOwner || /^unknown$/i.test(myOwner)) return '';
+        // Distance — equirectangular approximation, fine for ranking
+        const myLat = d._origLat ?? d.lat;
+        const myLng = d._origLng ?? d.lng;
+        const distKm = (lat, lng) => {
+          const dLat = (lat - myLat) * 110.574;
+          const dLng = (lng - myLng) * 111.320 * Math.cos(myLat * Math.PI / 180);
+          return Math.sqrt(dLat*dLat + dLng*dLng);
+        };
+        const related = rows
+          .filter(r => r !== d && (r.owner || '').trim() === myOwner)
+          .map(r => ({ r, d: distKm(r._origLat ?? r.lat, r._origLng ?? r.lng) }))
+          .sort((a, b) => a.d - b.d)
+          .slice(0, 8);
+        if (related.length === 0) return '';
         return `<div class="section">
-          <div class="section-title">${siblings.length} other cluster${siblings.length === 1 ? '' : 's'} at this site</div>
-          ${tooMany
-            ? `<div class="note" style="color:var(--text-muted);">${siblings.length} other clusters share these coordinates (likely the anonymised China centroid). Use search to find specific ones.</div>`
-            : shown.map(s => `<div class="model-cluster-row" data-sibling-name="${escapeHtml(s.name || '')}">
-                <div class="name">${escapeHtml(s.name || 'Unnamed')}</div>
-                <div class="meta">${escapeHtml(s.status || '')}${s.mw ? ` · ${s.mw >= 1000 ? (s.mw/1000).toFixed(2) + ' GW' : Math.round(s.mw) + ' MW'}` : ''}${s.firstOpYear ? ` · ${s.firstOpYear}` : ''}</div>
-              </div>`).join('')}
+          <div class="section-title">Other ${escapeHtml(myOwner)} clusters · ${related.length} closest</div>
+          ${related.map(({ r, d: distance }) => {
+            const dLabel = distance < 0.1 ? 'same site' : distance < 1 ? Math.round(distance * 1000) + ' m' : distance < 100 ? distance.toFixed(1) + ' km' : Math.round(distance) + ' km';
+            return `<div class="model-cluster-row" data-sibling-name="${escapeHtml(r.name || '')}">
+              <div class="name">${escapeHtml(r.name || 'Unnamed')}</div>
+              <div class="meta">${escapeHtml(r.status || '')}${r.mw ? ` · ${r.mw >= 1000 ? (r.mw/1000).toFixed(2) + ' GW' : Math.round(r.mw) + ' MW'}` : ''}${r.firstOpYear ? ` · ${r.firstOpYear}` : ''} · ${dLabel}</div>
+            </div>`;
+          }).join('')}
         </div>`;
       })()}
 
