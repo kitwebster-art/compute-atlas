@@ -40,6 +40,25 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
+### `PENDING` · Drop scale toggle, use linear altitude + chunky radius floor
+
+The Soft/Linear toggle didn't solve the problem — Soft mode still hid
+small green bars and Linear mode wasn't visibly different on big bars.
+
+New approach: split the visual encoding. **Altitude is strictly linear
+in MW** (a 5 GW bar is 100× taller than a 50 MW bar — honest cross-
+cluster comparison). **Radius uses a sqrt curve with a chunky floor of
+0.18** so every cluster has a visible disc footprint, regardless of
+how short its bar is. Small green operational sites now read as bright
+chunky coins; multi-GW planned clusters still tower over them.
+
+Removed the Bar scale row from the filter panel and the `?scale=`
+URL parameter that went with it.
+
+**Revert:** `git revert <sha>`
+
+---
+
 ### `f4a2924` · Bar scale toggle: Soft vs Linear
 
 Lets users pick the trade-off between visibility and strict
