@@ -376,6 +376,18 @@
     .context-body .topic-body {
       color: var(--text-dim); margin-bottom: 14px;
     }
+    .context-body .topic-actions {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0;
+    }
+    .context-body .topic-action {
+      background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.32);
+      color: var(--accent); cursor: pointer; padding: 7px 12px;
+      border-radius: 6px; font-size: 11px; font-family: inherit;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .context-body .topic-action:hover {
+      background: rgba(212,175,55,0.18); border-color: var(--accent);
+    }
     .context-body .topic-pullquote {
       border-left: 2px solid var(--accent); padding: 8px 14px;
       background: rgba(212,175,55,0.05); margin: 14px 0;
@@ -3079,12 +3091,54 @@ window.addEventListener('unhandledrejection', (e) => {
       const title = typeof s === 'string' ? s : (s.headline || s.title || s.url);
       return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${pub ? `<span class="src-publisher">${escapeHtml(pub)}</span>` : ''}${escapeHtml(title)}</a>`;
     }).join('');
+    const actions = (t.actions || []).map((a, i) => `<button class="topic-action" data-action-idx="${i}">${escapeHtml(a.label)} →</button>`).join('');
     body.innerHTML = `
       <div class="topic-headline">${escapeHtml(t.headline || '')}</div>
       <div class="topic-body">${(t.body || '').replace(/\n/g, '<br>')}</div>
       ${t.pullquote ? `<div class="topic-pullquote">${escapeHtml(t.pullquote)}</div>` : ''}
+      ${actions ? `<div class="topic-actions">${actions}</div>` : ''}
       ${sources ? `<div class="topic-sources"><div style="font-size:9px;color:var(--text-muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Sources</div>${sources}</div>` : ''}
     `;
+    // Wire action buttons — apply filter / camera / open cluster
+    body.querySelectorAll('.topic-action[data-action-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const a = (t.actions || [])[+btn.dataset.actionIdx];
+        if (!a) return;
+        // 1. Apply filters
+        if (a.filter) {
+          const f = a.filter;
+          if (f.country !== undefined) {
+            const sel = document.getElementById('filterCountry');
+            if (sel && [...sel.options].some(o => o.value === f.country)) sel.value = f.country;
+          }
+          if (f.status !== undefined) document.getElementById('filterStatus').value = f.status;
+          if (f.owner !== undefined) document.getElementById('filterOwner').value = f.owner;
+          if (f.minMW !== undefined) document.getElementById('filterMinMW').value = f.minMW;
+          applyFilters();
+        }
+        // 2. Switch view
+        if (a.view) {
+          const vb = document.querySelector(`#viewModeToggle button[data-view="${a.view}"]`);
+          if (vb) vb.click();
+        }
+        // 3. Open a specific cluster
+        if (a.openCluster) {
+          const c = rows.find(r => r.name === a.openCluster);
+          if (c) {
+            contextOverlay?.classList.remove('visible');
+            window._showDetail?.(c);
+            return;
+          }
+        }
+        // 4. Fly camera
+        if (a.camera) {
+          if (world.controls) world.controls().autoRotate = false;
+          world.pointOfView(a.camera, 1100);
+        }
+        // Close modal so the user can see the result
+        contextOverlay?.classList.remove('visible');
+      });
+    });
   }
   loadContextTopics();
   contextLink?.addEventListener('click', e => {

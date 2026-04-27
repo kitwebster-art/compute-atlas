@@ -7,6 +7,9 @@
       "headline": "Nvidia's best chips can't legally enter China, but the rules keep changing",
       "body": "Since October 2022, the US Bureau of Industry and Security has tried to keep Nvidia's frontier silicon out of China. The first rule cut off A100 and H100 sales above performance and interconnect thresholds; a 2023 update closed the loophole Nvidia opened with the downgraded A800 and H800. In January 2025 the Biden administration's AI Diffusion Rule sorted the world into three tiers, with China and Russia in the deny-by-default bucket and most of the global south in a licensed middle tier. The Trump administration rescinded the Diffusion Rule in May 2025, replacing it with bilateral, country-by-country negotiations. Meanwhile the H20, an export-compliant chip Nvidia designed for China, was banned in April 2025, then unbanned in July with a 15% revenue cut to the US Treasury. Chinese cluster locations and chip mixes remain deliberately opaque.",
       "pullquote": "The US government now takes 15% of Nvidia's H20 revenue from China, a tax negotiated chip-by-chip.",
+      "actions": [
+        {"label": "Show me China on the map", "filter": {"country": "China"}, "camera": {"lat": 35, "lng": 105, "altitude": 1.6}}
+      ],
       "sources": [
         {"url": "https://www.csis.org/analysis/understanding-biden-administrations-updated-export-controls", "publisher": "CSIS", "headline": "Understanding the Biden Administration's Updated Export Controls"},
         {"url": "https://www.federalregister.gov/documents/2025/01/15/2025-00636/framework-for-artificial-intelligence-diffusion", "publisher": "Federal Register", "headline": "Framework for Artificial Intelligence Diffusion"},
@@ -19,6 +22,10 @@
       "headline": "China is building its own stack, with Huawei in front and HBM as the bottleneck",
       "body": "Cut off from Nvidia's frontier line, China has spent three years standing up an alternative. Huawei's Ascend 910C is the leading edge: DeepSeek's own benchmarks put it at roughly 60% of an H100 on inference, and Huawei's 384-chip CloudMatrix rack reportedly matches Nvidia GB200 NVL72 on aggregate FP16 throughput by brute-forcing more silicon at the problem. Cambricon and Biren round out the field. The hard ceiling is manufacturing: SMIC produces 7nm logic via DUV multi-patterning because ASML cannot legally ship EUV tools, and HBM memory supply has become the real bottleneck, not transistors. The result is that Chinese clusters tend to be larger and less efficient than Western equivalents for equivalent compute, and most are owned by SOEs or hyperscalers who prefer not to publish locations. That's why FLOP Map's China coverage looks like a single dot in central China: Epoch's data faithfully shows where the public information ends.",
       "pullquote": "Huawei's CloudMatrix 384 reaches roughly 300 PF of BF16 by chaining together chips that individually deliver about a third of a Blackwell.",
+      "actions": [
+        {"label": "Show the China centroid", "filter": {"country": "China"}, "camera": {"lat": 35.487, "lng": 101.902, "altitude": 1.4}},
+        {"label": "Show the Huawei Pangu cluster", "openCluster": "Huawei Pangu Ultra MoE 910Bs"}
+      ],
       "sources": [
         {"url": "https://www.tomshardware.com/tech-industry/artificial-intelligence/deepseek-research-suggests-huaweis-ascend-910c-delivers-60-percent-nvidia-h100-inference-performance", "publisher": "Tom's Hardware", "headline": "DeepSeek research: Huawei Ascend 910C ≈ 60% of H100 on inference"},
         {"url": "https://newsletter.semianalysis.com/p/huawei-ascend-production-ramp", "publisher": "SemiAnalysis", "headline": "Huawei Ascend production ramp: HBM is the bottleneck"},
@@ -31,6 +38,10 @@
       "headline": "Hyperscalers are quietly building Nvidia alternatives, one ASIC at a time",
       "body": "Nvidia still owns roughly 90% of the AI accelerator market, but every hyperscaler is now hedging with custom silicon. Google's seventh-generation TPU, Ironwood, claims a 10× performance lift over TPU v5p; Anthropic signed a deal in October 2025 for up to a million Ironwood chips, with the first 400,000 worth around $10bn. Anthropic is simultaneously deploying hundreds of thousands of Amazon's Trainium2 across Project Rainier. Microsoft's Maia 200 (3nm, 216GB HBM3e) is built for inference, as is Meta's MTIA family, which Meta and Broadcom plan to refresh every six months. Tesla quietly killed Dojo in late 2025 and went back to buying Nvidia and AMD; xAI's Colossus clusters remain Nvidia-heavy. The pattern: training stays on GPUs, inference is migrating to ASICs, and that is where Nvidia's monopoly first cracks.",
       "pullquote": "Anthropic's Ironwood deal alone would bring more than a gigawatt of compute online in 2026, bigger than most national AI strategies.",
+      "actions": [
+        {"label": "Show AWS Project Rainier", "openCluster": "AWS Project Rainier (New Carlisle)"},
+        {"label": "Show xAI Colossus Memphis", "openCluster": "xAI Colossus Memphis Phase 1"}
+      ],
       "sources": [
         {"url": "https://cloud.google.com/blog/products/compute/ironwood-tpus-and-new-axion-based-vms-for-your-ai-workloads/", "publisher": "Google Cloud", "headline": "Ironwood TPUs and new Axion-based VMs"},
         {"url": "https://www.tomshardware.com/tech-industry/artificial-intelligence/tesla-scraps-custom-dojo-wafer-level-processor-initiative-dismantles-team-musk-to-lean-on-nvidia-and-amd-more", "publisher": "Tom's Hardware", "headline": "Tesla scraps custom Dojo, will lean on Nvidia and AMD"},
@@ -43,6 +54,9 @@
       "headline": "Russia has roughly 9,000 GPUs. Microsoft buys that many in a fortnight.",
       "body": "Russia is the great absence on any AI compute map. Western sanctions cut Nvidia and AMD shipments off in early 2022, and grey-market routes through Kazakhstan, the UAE and China have proven slow and unreliable as suppliers fear secondary sanctions. Sber has reportedly accumulated around 9,000 accelerators since 2022; Microsoft bought roughly 500,000 GPUs in 2024 alone. Yandex's Chervonenkis supercomputer, built on A100s acquired before the war, still ranks as Russia's largest known AI system. Domestic alternatives barely exist: there is no Russian equivalent to Huawei Ascend, and SMIC will not sell into the country. Combined with deep disclosure opacity around state-linked compute, that is why almost no Russian clusters appear on this map even though Sber and Yandex are visibly shipping models.",
       "pullquote": "Yandex's flagship Chervonenkis cluster is powered by A100s, chips that became export-controlled three years ago.",
+      "actions": [
+        {"label": "Show Russia (or what's known)", "filter": {"country": "Russia"}, "camera": {"lat": 60, "lng": 90, "altitude": 1.7}}
+      ],
       "sources": [
         {"url": "https://www.rferl.org/a/deepseek-russian-ai-sber-yandex-kandinsky-censorship/33305704.html", "publisher": "RFE/RL", "headline": "As DeepSeek rises, Russia falls behind on AI"},
         {"url": "https://www.intellinews.com/russian-ai-accelerates-but-sanctions-leave-it-trailing-global-leaders-402710/", "publisher": "bne IntelliNews", "headline": "Russian AI accelerates but sanctions leave it trailing"}
@@ -54,6 +68,11 @@
       "headline": "Every G20 nation now wants a national AI cluster",
       "body": "Sovereign AI has gone from buzzword to budget line. The US$500bn Stargate venture, announced in January 2025 by OpenAI, SoftBank, Oracle and MGX, is the most visible bet, with a 4.5GW Oracle deal already signed and Stargate spinoffs in the UAE, Norway and Japan. Abu Dhabi's MGX is a $100bn sovereign vehicle co-funding France's largest AI campus alongside Bpifrance, Mistral and Nvidia, with 18,000 Blackwell GPUs in phase one. Saudi Arabia's HUMAIN and the UAE's G42 each won US approval in November 2025 to import the equivalent of 35,000 Blackwell GB300s. The UK's £2bn AI Compute plan anchors Isambard-AI in Bristol; India is subsidising domestic GPU access through the IndiaAI Mission; Japan, South Korea and Germany are all standing up sovereign clouds. The pattern is clear: compute is now treated as critical national infrastructure.",
       "pullquote": "MGX, Abu Dhabi's $100bn AI fund, is now a co-investor in both Stargate and Europe's largest AI campus. The same money is building clusters on three continents.",
+      "actions": [
+        {"label": "Show Stargate Abilene Phase 3", "openCluster": "OpenAI Stargate Abilene Oracle OCI Supercluster Phase 3"},
+        {"label": "Show HUMAIN Riyadh", "openCluster": "HUMAIN x NVIDIA Riyadh AI Factory"},
+        {"label": "Show Reliance Jamnagar", "openCluster": "Reliance Jio AI Cloud (Jamnagar)"}
+      ],
       "sources": [
         {"url": "https://openai.com/index/announcing-the-stargate-project/", "publisher": "OpenAI", "headline": "Announcing The Stargate Project"},
         {"url": "https://www.bloomberg.com/news/articles/2025-11-19/us-reaches-ai-chip-sale-agreement-with-g42-in-win-for-uae-firm", "publisher": "Bloomberg", "headline": "US chip approval boosts UAE, Saudi AI ambitions"},
@@ -66,6 +85,10 @@
       "headline": "AI is rewriting the US power grid, one nuclear PPA at a time",
       "body": "EPRI now projects US data centres will consume 9 to 17% of national electricity by 2030, up from 4 to 5% today, and roughly 60% higher than its own 2024 forecast. Northern Virginia's Dominion Energy saw contracted data-centre load jump from 33GW to 47GW in a single year. ERCOT in Texas is planning for 35GW of data-centre demand by 2035. The supply side is improvising: Microsoft signed a 20-year, 835MW PPA to restart Three Mile Island Unit 1 in 2027, Amazon paid $650m for Talen's Susquehanna campus and inked a 1.92GW nuclear PPA, and gas-turbine factories are sold out through 2027. Cooling has shifted to closed-loop liquid systems, cutting water intensity well below traditional thermal generation. Mega-clusters are flocking to whatever combination of cheap power, permissive regulation and cool climate is available. That's why so many flags on this map cluster around Virginia, Texas and the Nordics.",
       "pullquote": "Restarting Three Mile Island for Microsoft will deliver 835MW of carbon-free power to a single customer, on a 20-year contract.",
+      "actions": [
+        {"label": "Zoom to Texas mega-clusters", "filter": {"minMW": 500, "country": "United States of America"}, "camera": {"lat": 32, "lng": -99, "altitude": 1.4}},
+        {"label": "Show Microsoft Fairwater Mt Pleasant", "openCluster": "Microsoft Fairwater Mt Pleasant"}
+      ],
       "sources": [
         {"url": "https://www.epri.com/about/media-resources/press-release/q5vu86fr8tkxatfx8ihf1u48vw4r1dzf", "publisher": "EPRI", "headline": "Data centres could consume up to 9% of US electricity by 2030"},
         {"url": "https://www.datacenterdynamics.com/en/news/three-mile-island-nuclear-power-plant-to-return-as-microsoft-signs-20-year-835mw-ai-data-center-ppa/", "publisher": "DCD", "headline": "Three Mile Island returns: Microsoft signs 20-year 835MW PPA"},
@@ -78,6 +101,10 @@
       "headline": "Frontier training compute is doubling every five months. Clusters are the proof.",
       "body": "Before 2017, training compute for notable AI models doubled roughly every two years, the pace of Moore's Law. Since 2020, frontier training has compounded at 4 to 5× per year, doubling about every 5.2 months according to Epoch AI. GPT-4 to its successors represents an estimated 30 to 100× jump in raw compute. The hyperscaler capex line is the physical fingerprint of that curve: combined Alphabet, Amazon, Meta, Microsoft and Oracle capital spending tripled from $162bn in 2022 to $448bn in 2025. Anthropic's CEO has speculated the first $10bn-plus training runs are imminent. The clusters mapped here are the bricks-and-mortar form of that scaling law: every doubling of training compute requires more silicon, more power and more cooling than the entire previous generation. This is why a global compute map looks so different now than it did even two years ago.",
       "pullquote": "Frontier training compute now doubles every 5.2 months, three times faster than Moore's Law at its peak.",
+      "actions": [
+        {"label": "Switch to Frontier Models view", "view": "models"},
+        {"label": "Show only mega-clusters (≥1 GW)", "filter": {"minMW": 1000}}
+      ],
       "sources": [
         {"url": "https://epoch.ai/blog/training-compute-of-frontier-ai-models-grows-by-4-5x-per-year", "publisher": "Epoch AI", "headline": "Training compute of frontier AI models grows 4–5× per year"},
         {"url": "https://epoch.ai/data-insights/compute-trend-post-2010", "publisher": "Epoch AI", "headline": "Training compute of notable models doubling roughly every six months"},
