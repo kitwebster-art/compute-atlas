@@ -2033,8 +2033,10 @@ window.addEventListener('unhandledrejection', (e) => {
       .ringRepeatPeriod(1800);
   }
 
-  // Start with a nice camera position (default is fine)
-  world.pointOfView({ lat: 20, lng: 20, altitude: 2.3 }, 0);
+  // Start with the camera centred over the North Atlantic — frames the US
+  // and Europe in the same shot (where most clusters live), so first-load
+  // visitors see a populated map instead of mostly-empty Africa.
+  world.pointOfView({ lat: 38, lng: -50, altitude: 2.3 }, 0);
 
   // Auto-rotate until user interacts
   world.controls().autoRotate = true;
@@ -3296,7 +3298,7 @@ window.addEventListener('unhandledrejection', (e) => {
     else if (e.key === '4') { e.preventDefault(); selectViewMode('models'); }
     else if (e.key === 'r' || e.key === 'R') {
       e.preventDefault();
-      world.pointOfView({ lat: 20, lng: 20, altitude: 2.3 }, 900);
+      world.pointOfView({ lat: 38, lng: -50, altitude: 2.3 }, 900);
     }
     else if (e.key === 's' || e.key === 'S') {
       e.preventDefault();
@@ -3358,7 +3360,7 @@ window.addEventListener('unhandledrejection', (e) => {
     mena:  { lat: 28,  lng:   40, altitude: 1.5 },
     china: { lat: 35,  lng:  110, altitude: 1.5 },
     sea:   { lat: -10, lng:  130, altitude: 1.5 },
-    world: { lat: 20,  lng:   20, altitude: 2.3 },
+    world: { lat: 38,  lng:  -50, altitude: 2.3 },
   };
   document.querySelectorAll('#regionStrip button').forEach(btn => {
     btn.addEventListener('click', () => {
