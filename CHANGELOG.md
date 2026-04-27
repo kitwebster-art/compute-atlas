@@ -40,7 +40,7 @@ git push origin main         # deploys to GitHub Pages
 
 ---
 
-### `PENDING` · Drop scale toggle, use linear altitude + chunky radius floor
+### `ab5a8b8` · Drop scale toggle, use linear altitude + chunky radius floor
 
 The Soft/Linear toggle didn't solve the problem — Soft mode still hid
 small green bars and Linear mode wasn't visibly different on big bars.
@@ -55,7 +55,7 @@ chunky coins; multi-GW planned clusters still tower over them.
 Removed the Bar scale row from the filter panel and the `?scale=`
 URL parameter that went with it.
 
-**Revert:** `git revert <sha>`
+**Revert:** `git revert ab5a8b8`
 
 ---
 
