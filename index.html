@@ -1908,7 +1908,7 @@ window.addEventListener('unhandledrejection', (e) => {
       .hexLabel(({ points, sumWeight }) => `<div style="background:rgba(10,14,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 12px;font-family:Inter,sans-serif;color:#e8e8ec;min-width:160px;">
         <div style="font-size:11px;color:var(--accent);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:4px;">Cluster region</div>
         <div style="font-size:12px;">${points.length} site${points.length === 1 ? '' : 's'}</div>
-        <div style="font-size:12px;font-family:JetBrains Mono,monospace;">${fmtNum(sumWeight)} ${sizeMode === 'power' ? 'MW' : 'H100-eq'}</div>
+        <div style="font-size:12px;font-family:JetBrains Mono,monospace;">${sizeMode === 'power' ? fmtMwCompact(sumWeight) : fmtNum(sumWeight) + ' H100-eq'}</div>
       </div>`)
       .onHexClick(hex => {
         if (hex.points && hex.points.length > 0) {
@@ -2792,7 +2792,7 @@ window.addEventListener('unhandledrejection', (e) => {
       ['Country', r => r.country || '—', s => escapeHtml(s), null, 'string'],
       ['Operator', r => r.owner || '—', s => escapeHtml(s), null, 'string'],
       ['Sector', r => r.sector || '—', s => escapeHtml(s), null, 'string'],
-      ['Power (MW)', r => r.mw ?? null, v => v == null ? '—' : fmtNum(v) + ' MW', 'max', 'num'],
+      ['Power', r => r.mw ?? null, v => v == null ? '—' : fmtMwCompact(v), 'max', 'num'],
       ['H100 equiv.', r => r.h100 ?? null, v => v == null ? '—' : fmtNum(v), 'max', 'num'],
       ['Peak FLOP/s', r => r.flops ?? null, v => v == null ? '—' : fmtFlops(v), 'max', 'num'],
       ['Total chips', r => r.totalChips ?? null, v => v == null ? '—' : fmtNum(v), 'max', 'num'],
