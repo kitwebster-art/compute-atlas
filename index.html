@@ -283,6 +283,15 @@
       background: var(--bg-panel); border: 1px solid var(--border);
       border-radius: 14px; padding: 28px 32px;
       max-width: 420px; width: calc(100% - 48px);
+      max-height: calc(100vh - 60px); overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .kbd-overlay .card::-webkit-scrollbar { width: 6px; }
+    .kbd-overlay .card::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.08); border-radius: 3px;
+    }
+    .kbd-overlay .card::-webkit-scrollbar-thumb:hover {
+      background: rgba(212,175,55,0.4);
     }
     .kbd-overlay h3 {
       font-size: 10px; letter-spacing: 0.4em; color: var(--text-dim);
@@ -1101,8 +1110,8 @@
     <h3>About FLOP Map</h3>
     <div style="font-size:13px;line-height:1.65;color:var(--text);margin-bottom:16px;">
       A public, interactive 3D map of every known AI compute cluster on earth —
-      all 691 sites tracked by <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>,
-      covering ≈55 GW of power and ≈79M H100-equivalent chips. Built to make the
+      <span id="aboutClusterCount">700+</span> named sites tracked by <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>
+      plus FLOP Map's curated additions, covering <span id="aboutTotalGW">≈65 GW</span> of power and <span id="aboutTotalH100">≈80M</span> H100-equivalent chips. Built to make the
       infrastructure behind the AI boom visible.
     </div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">How it works</div>
@@ -2859,8 +2868,20 @@ window.addEventListener('unhandledrejection', (e) => {
   // --- About modal ---
   const aboutOverlay = document.getElementById('aboutOverlay');
   const aboutLink = document.getElementById('aboutLink');
+  function refreshAboutCounts() {
+    const totalMW = rows.reduce((s, r) => s + (r.mw || 0), 0);
+    const totalH100 = rows.reduce((s, r) => s + (r.h100 || 0), 0);
+    const cn = document.getElementById('aboutClusterCount');
+    const cg = document.getElementById('aboutTotalGW');
+    const ch = document.getElementById('aboutTotalH100');
+    if (cn) cn.textContent = rows.length.toLocaleString();
+    if (cg) cg.textContent = totalMW >= 1000 ? `≈${(totalMW/1000).toFixed(0)} GW` : `≈${Math.round(totalMW)} MW`;
+    if (ch) ch.textContent = totalH100 >= 1e6 ? `≈${(totalH100/1e6).toFixed(0)}M` : totalH100 >= 1e3 ? `≈${(totalH100/1e3).toFixed(0)}k` : `${Math.round(totalH100)}`;
+  }
+  refreshAboutCounts();
   aboutLink?.addEventListener('click', e => {
     e.preventDefault();
+    refreshAboutCounts();
     aboutOverlay.classList.add('visible');
   });
   aboutOverlay?.addEventListener('click', e => {
@@ -2898,7 +2919,7 @@ window.addEventListener('unhandledrejection', (e) => {
     const h100Str = totalH100 >= 1e6 ? (totalH100 / 1e6).toFixed(1) + 'M' : totalH100 >= 1e3 ? (totalH100 / 1e3).toFixed(0) + 'k' : Math.round(totalH100);
     const isDefault = scope === 'global' && visible.length >= 600;
     const blurb = isDefault
-      ? `FLOP Map: a live 3D map of every known AI compute cluster on earth. ~55 GW · ~79M H100-equivalents · 691 sites. Public data, open source.`
+      ? `FLOP Map: a live 3D map of every named AI compute cluster on earth. ${powerStr} · ${h100Str} H100-equivalents · ${visible.length} sites. Public data, open source.`
       : `FLOP Map (${scope}): ${visible.length} clusters · ${powerStr} · ${h100Str} H100-eq.`;
     const title = `FLOP Map — ${scope === 'global' ? 'the world\u2019s AI compute, mapped' : scope + ' AI compute'}`;
     return { url, blurb, title };
