@@ -1498,9 +1498,12 @@ window.addEventListener('unhandledrejection', (e) => {
     }
     for (const group of groups.values()) {
       if (group.length < 2 || group.length > 10) continue;
-      // Tiny radius — ~0.0008° ≈ 90m on the ground. Enough for raycast
-      // separation, invisible at the default zoom level.
-      const radius = 0.0008;
+      // ~0.025° ≈ 2.8 km at typical latitudes. Big enough that 3-5 same-
+      // address phases (xAI Colossus 1/2/3 etc.) fan out visibly when the
+      // user zooms in via operator filter (alt ~0.25-0.35, ~30-60 km wide),
+      // but tight enough to still read as the same campus. Skip groups
+      // of >10 (the China centroid).
+      const radius = 0.025;
       // Sort by descending weight so the largest stays at origin
       group.sort((a, b) => (b.mw || 0) - (a.mw || 0));
       group.forEach((r, i) => {
@@ -1836,9 +1839,9 @@ window.addEventListener('unhandledrejection', (e) => {
     };
     const radFor = d => {
       const w = weightFor(d);
-      if (!w) return 0.18;
+      if (!w) return 0.10;
       const norm = Math.sqrt(w / pointScaleRef);
-      return Math.min(0.55, Math.max(0.18, norm * 0.5));
+      return Math.min(0.40, Math.max(0.10, norm * 0.35));
     };
     world
       .hexBinPointsData([])
@@ -2156,7 +2159,64 @@ window.addEventListener('unhandledrejection', (e) => {
     }
     renderStatusMix(filtered, totalMW);
     renderLeaderboard(filtered);
+    // Auto-zoom: when an operator/country filter narrows the view to a
+    // small set, fly the camera to fit them. Otherwise users see one
+    // big bar over a continent and miss that there are siblings stacked
+    // at different addresses (e.g. xAI's 5 Memphis builds across 2 lots).
+    const narrowFilter = (owner !== 'all' || country !== 'all');
+    if (narrowFilter && filtered.length >= 1 && filtered.length <= 30) {
+      autoFitCamera(filtered);
+    }
     console.log('[Compute Atlas] filter applied:', { status, owner, country, minMW, year: timelineActive ? timelineYear : 'all', shown: filtered.length, view: viewMode });
+  }
+
+  // Fly the camera to focus on the densest sub-cluster of `data`.
+  // We aim for the BIGGEST cluster and zoom enough to also see its nearest
+  // siblings — better than fitting a bounding box that includes outliers
+  // (e.g. one tiny xAI Fulton Georgia bar 530 km from the Memphis stack).
+  function autoFitCamera(data) {
+    const pts = data.filter(r => r.lat != null && r.lng != null && r.mw);
+    if (!pts.length) return;
+    if (world.controls) world.controls().autoRotate = false;
+    // Anchor: the largest cluster
+    const anchor = pts.slice().sort((a, b) => (b.mw || 0) - (a.mw || 0))[0];
+    const aLat = anchor._origLat ?? anchor.lat;
+    const aLng = anchor._origLng ?? anchor.lng;
+    if (pts.length === 1) {
+      world.pointOfView({ lat: aLat, lng: aLng, altitude: 0.7 }, 900);
+      return;
+    }
+    // Find span of nearby clusters (within 200 km of anchor)
+    const nearby = pts.filter(p => {
+      const dLat = ((p._origLat ?? p.lat) - aLat) * 110.574;
+      const dLng = ((p._origLng ?? p.lng) - aLng) * 111.320 * Math.cos(aLat * Math.PI / 180);
+      return Math.sqrt(dLat * dLat + dLng * dLng) < 200;
+    });
+    let maxKm = 5;
+    for (const p of nearby) {
+      const dLat = ((p._origLat ?? p.lat) - aLat) * 110.574;
+      const dLng = ((p._origLng ?? p.lng) - aLng) * 111.320 * Math.cos(aLat * Math.PI / 180);
+      const d = Math.sqrt(dLat * dLat + dLng * dLng);
+      if (d > maxKm) maxKm = d;
+    }
+    // Map km span → altitude. Tuned to clearly separate 1.3 km jittered
+    // siblings even when several bars share an address.
+    let alt;
+    if (maxKm < 5) alt = 0.25;
+    else if (maxKm < 20) alt = 0.35;
+    else if (maxKm < 60) alt = 0.5;
+    else if (maxKm < 200) alt = 0.7;
+    else alt = 1.0;
+    // Duration 0 — animated transitions occasionally don't take effect
+    // (autoRotate fight, browser-throttled tween). Snap is reliable.
+    world.pointOfView({ lat: aLat, lng: aLng, altitude: alt }, 0);
+    // Auto-open the largest visible cluster's detail panel so the user
+    // can immediately read its specs and use the "Other [Operator]
+    // clusters" list to switch between siblings — the most reliable way
+    // to make multi-phase deployments discoverable.
+    setTimeout(() => {
+      if (typeof showDetail === 'function') showDetail(anchor);
+    }, 100);
   }
 
   function renderStatusMix(data, totalMW) {
