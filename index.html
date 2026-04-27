@@ -966,8 +966,13 @@
     }
 
     @media (max-width: 800px) {
-      .masthead { left: 12px; top: 12px; max-width: calc(100vw - 110px); }
-      .masthead h1 { font-size: 16px; line-height: 1.15; }
+      .left-rail {
+        position: static; width: auto; height: auto; bottom: auto;
+        display: contents; /* let children apply their own mobile rules */
+      }
+      .masthead { left: 12px; top: 12px; right: 110px; max-width: calc(100vw - 124px); }
+      .masthead .brand { flex: 1; min-width: 0; }
+      .masthead h1 { font-size: 16px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .masthead .tagline { display: none; }
       .masthead .eyebrow { font-size: 9px; }
       .counter { right: 12px; top: 12px; text-align: right; }
