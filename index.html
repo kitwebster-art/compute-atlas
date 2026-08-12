@@ -18,6 +18,7 @@
   <meta name="twitter:description" content="Explore more than 700 publicly disclosed AI compute clusters, with sources and uncertainty made visible.">
   <meta name="twitter:image" content="https://flopmap.com/social-card.png">
   <link rel="canonical" href="https://flopmap.com/">
+  <script id="umamiAnalytics" defer src="https://cloud.umami.is/script.js" data-website-id="d1f478ae-d2ae-46a2-9238-2c54347f66c2" data-domains="flopmap.com,www.flopmap.com" data-do-not-track="true" data-exclude-hash="true"></script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23d4af37'/%3E%3Ccircle cx='50' cy='50' r='38' fill='%23050710'/%3E%3Ccircle cx='35' cy='42' r='3' fill='%23ff3c3c'/%3E%3Ccircle cx='60' cy='55' r='4' fill='%23ffd60a'/%3E%3Ccircle cx='48' cy='65' r='2.5' fill='%234ad188'/%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -1335,6 +1336,29 @@ window.addEventListener('unhandledrejection', (e) => {
   if (statusEl) statusEl.textContent = 'ERROR: ' + (e.reason?.message || e.reason || 'unknown');
   console.error('[Compute Atlas] unhandled:', e.reason);
 });
+
+// Privacy-first interaction analytics. Umami uses no cookies or cross-site
+// tracking. Keep properties limited to public map content and UI state.
+const analyticsQueue = [];
+function trackEvent(name, data = {}) {
+  const clean = Object.fromEntries(Object.entries(data)
+    .filter(([, value]) => value !== null && value !== undefined && value !== '')
+    .map(([key, value]) => [key, typeof value === 'number' ? value : String(value).slice(0, 160)]));
+  if (window.umami?.track) {
+    window.umami.track(name, clean);
+  } else if (analyticsQueue.length < 20) {
+    analyticsQueue.push([name, clean]);
+  }
+}
+function flushAnalyticsQueue() {
+  if (!window.umami?.track) return;
+  while (analyticsQueue.length) {
+    const [name, data] = analyticsQueue.shift();
+    window.umami.track(name, data);
+  }
+}
+document.getElementById('umamiAnalytics')?.addEventListener('load', flushAnalyticsQueue);
+
 (async function () {
   const loader = document.getElementById('loader');
   const statusEl = document.querySelector('.loader .status');
@@ -1701,6 +1725,7 @@ window.addEventListener('unhandledrejection', (e) => {
       rect.addEventListener('click', () => {
         slider.value = yr;
         slider.dispatchEvent(new Event('input', { bubbles: true }));
+        trackEvent('timeline_change', { year: yr, method: 'sparkline' });
       });
       rect.addEventListener('mouseenter', () => updateSparkCaption(yr));
       rect.addEventListener('mouseleave', () => updateSparkCaption(timelineActive ? timelineYear : null));
@@ -2452,7 +2477,10 @@ window.addEventListener('unhandledrejection', (e) => {
   // Attach both 'change' and 'input' so selects and number inputs both trigger
   ['filterStatus', 'filterOwner', 'filterCountry', 'filterSector', 'filterMinMW'].forEach(id => {
     const el = document.getElementById(id);
-    el.addEventListener('change', applyFilters);
+    el.addEventListener('change', () => {
+      applyFilters();
+      trackEvent('filter_apply', { filter: id.replace(/^filter/, '').toLowerCase(), value: el.value || 'all' });
+    });
     el.addEventListener('input', applyFilters);
   });
 
@@ -2507,6 +2535,9 @@ window.addEventListener('unhandledrejection', (e) => {
     renderSpark(timelineYear);
     applyFilters();
   });
+  slider.addEventListener('change', () => {
+    trackEvent('timeline_change', { year: timelineYear, method: 'slider' });
+  });
 
   // Play button — animate from min to max over ~18s
   const playBtn = document.getElementById('playBtn');
@@ -2547,6 +2578,7 @@ window.addEventListener('unhandledrejection', (e) => {
 
   window._showDetail = showDetail;
   function showDetail(d) {
+    trackEvent('cluster_open', { cluster: d.name || 'Unnamed cluster', country: d.country || 'Unknown' });
     const statusLower = (d.status || '').toLowerCase();
     const statusClass = statusLower.includes('existing') || statusLower.includes('operational')
       ? 'status-operational'
@@ -2749,6 +2781,7 @@ window.addEventListener('unhandledrejection', (e) => {
         e.preventDefault();
         const url = `${location.origin}${location.pathname}#cluster=${encodeURIComponent(d.name || '')}`;
         navigator.clipboard.writeText(url).then(() => {
+          trackEvent('share_view', { method: 'cluster_link', cluster: d.name || 'Unnamed cluster' });
           const orig = shareBtn.textContent;
           shareBtn.textContent = 'Link copied ✓';
           setTimeout(() => { shareBtn.textContent = orig; }, 1500);
@@ -2762,6 +2795,7 @@ window.addEventListener('unhandledrejection', (e) => {
       pinBtn.addEventListener('click', () => {
         togglePin(d.name);
         const isPinned = pinnedClusters.has(d.name);
+        if (isPinned) trackEvent('comparison_pin', { cluster: d.name || 'Unnamed cluster' });
         pinBtn.classList.toggle('pinned', isPinned);
         pinBtn.textContent = isPinned ? '✓ Pinned' : '★ Pin to compare';
       });
@@ -3135,6 +3169,7 @@ window.addEventListener('unhandledrejection', (e) => {
         const name = el.dataset.name;
         const row = rows.find(r => r.name === name);
         if (row) {
+          trackEvent('search_use', { cluster: row.name || 'Unnamed cluster', query_length: searchInput.value.trim().length });
           showDetail(row);
           searchInput.value = '';
           searchResults.classList.remove('visible');
@@ -3229,6 +3264,7 @@ window.addEventListener('unhandledrejection', (e) => {
     nav.querySelectorAll('.ctx-tab').forEach(b => {
       b.addEventListener('click', () => {
         contextActiveId = b.dataset.topic;
+        trackEvent('context_topic_open', { topic: contextActiveId, method: 'tab' });
         renderContextTabs();
         renderContextBody();
       });
@@ -3297,12 +3333,14 @@ window.addEventListener('unhandledrejection', (e) => {
   loadContextTopics();
   contextLink?.addEventListener('click', e => {
     e.preventDefault();
+    trackEvent('context_topic_open', { topic: contextActiveId || 'overview', method: 'footer' });
     contextOverlay?.classList.add('visible');
   });
   // About → Context cross-link
   document.getElementById('aboutToContextLink')?.addEventListener('click', e => {
     e.preventDefault();
     aboutOverlay?.classList.remove('visible');
+    trackEvent('context_topic_open', { topic: contextActiveId || 'overview', method: 'about' });
     contextOverlay?.classList.add('visible');
   });
 
@@ -3314,6 +3352,7 @@ window.addEventListener('unhandledrejection', (e) => {
       renderContextTabs();
       renderContextBody();
     }
+    trackEvent('context_topic_open', { topic: contextActiveId || topicId || 'overview', method: 'coverage_hint' });
     contextOverlay?.classList.add('visible');
   }
   coverageHint?.addEventListener('click', () => openContextAt(coverageHint.dataset.topicId));
@@ -3327,6 +3366,7 @@ window.addEventListener('unhandledrejection', (e) => {
   copyEmbed?.addEventListener('click', () => {
     const code = document.getElementById('embedCode')?.textContent || '';
     navigator.clipboard.writeText(code).then(() => {
+      trackEvent('embed_copy');
       const prev = copyEmbed.textContent;
       copyEmbed.textContent = 'Copied';
       setTimeout(() => { copyEmbed.textContent = prev; }, 1500);
@@ -3375,10 +3415,19 @@ window.addEventListener('unhandledrejection', (e) => {
   const aboutLinkForShare = document.getElementById('aboutLink');
   aboutLinkForShare?.addEventListener('click', () => setTimeout(refreshShareLinks, 0));
   refreshShareLinks();
+  [
+    ['shareTwitter', 'x'],
+    ['shareLinkedIn', 'linkedin'],
+    ['shareReddit', 'reddit'],
+    ['shareHN', 'hacker_news'],
+  ].forEach(([id, platform]) => {
+    document.getElementById(id)?.addEventListener('click', () => trackEvent('share_platform_click', { platform }));
+  });
   const sc = document.getElementById('shareCopy');
   sc?.addEventListener('click', () => {
     refreshShareLinks();
     navigator.clipboard.writeText(location.href).then(() => {
+      trackEvent('share_view', { method: 'about_copy' });
       const prev = sc.textContent;
       sc.textContent = 'Link copied';
       setTimeout(() => { sc.textContent = prev; }, 1500);
@@ -3628,6 +3677,7 @@ window.addEventListener('unhandledrejection', (e) => {
     const btn = document.getElementById('btnShareView');
     const url = location.href;
     navigator.clipboard.writeText(url).then(() => {
+      trackEvent('share_view', { method: 'filter_copy' });
       const orig = btn.textContent;
       btn.textContent = 'Link copied ✓';
       setTimeout(() => { btn.textContent = orig; }, 1500);
@@ -3636,6 +3686,7 @@ window.addEventListener('unhandledrejection', (e) => {
 
   document.getElementById('btnExport').addEventListener('click', () => {
     const src = window._filtered || rows;
+    trackEvent('csv_export', { records: src.length });
     const cols = ['name', 'owner', 'status', 'country', 'location',
       'lat', 'lng', 'mw', 'h100', 'flops', 'chipType', 'chipQty',
       'totalChips', 'gpuSupplier', 'firstOp', 'sector', 'hardwareCost',
@@ -3657,6 +3708,14 @@ window.addEventListener('unhandledrejection', (e) => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  });
+
+  document.addEventListener('click', event => {
+    const link = event.target.closest('.sources a, .topic-sources a');
+    if (!link) return;
+    let source = 'unknown';
+    try { source = new URL(link.href).hostname; } catch {}
+    trackEvent('source_click', { source });
   });
 
   document.getElementById('btnSnapshot').addEventListener('click', () => {
