@@ -3,15 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FLOP Map — The World's AI Compute, Live</title>
-  <meta name="description" content="A live 3D map of the world's named AI compute clusters. ~700+ disclosed GPU/TPU sites visualised on an interactive globe. Data from Epoch AI plus FLOP Map additions.">
-  <meta property="og:title" content="FLOP Map — The World's AI Compute, Live">
-  <meta property="og:description" content="A live 3D map of every named AI compute cluster on earth. ~700+ disclosed GPU/TPU sites, visualised.">
+  <title>FLOP Map: The World's Disclosed AI Compute, Mapped</title>
+  <meta name="description" content="Explore more than 700 publicly disclosed AI compute clusters on an interactive 3D globe, with sources, uncertainty, power and hardware details.">
+  <meta property="og:title" content="The cloud has an address | FLOP Map">
+  <meta property="og:description" content="Explore more than 700 publicly disclosed AI compute clusters, with sources and uncertainty made visible.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://flopmap.com">
+  <meta property="og:url" content="https://flopmap.com/">
+  <meta property="og:image" content="https://flopmap.com/social-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="FLOP Map globe showing publicly disclosed AI compute clusters">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="FLOP Map — The World's AI Compute, Live">
-  <meta name="twitter:description" content="A live 3D map of every named AI compute cluster on earth. ~700+ disclosed GPU/TPU sites, visualised.">
+  <meta name="twitter:title" content="The cloud has an address | FLOP Map">
+  <meta name="twitter:description" content="Explore more than 700 publicly disclosed AI compute clusters, with sources and uncertainty made visible.">
+  <meta name="twitter:image" content="https://flopmap.com/social-card.png">
+  <link rel="canonical" href="https://flopmap.com/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23d4af37'/%3E%3Ccircle cx='50' cy='50' r='38' fill='%23050710'/%3E%3Ccircle cx='35' cy='42' r='3' fill='%23ff3c3c'/%3E%3Ccircle cx='60' cy='55' r='4' fill='%23ffd60a'/%3E%3Ccircle cx='48' cy='65' r='2.5' fill='%234ad188'/%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -1002,14 +1008,20 @@
       .region-strip { flex-wrap: wrap; justify-content: center; gap: 4px; }
       .region-strip button { font-size: 9px; padding: 4px 8px; }
       .filters {
-        left: 12px; top: auto; bottom: 70px; width: calc(100% - 24px);
-        max-height: 50vh; overflow-y: auto;
+        position: fixed; z-index: 12;
+        left: 12px; top: auto; bottom: 60px; width: calc(100% - 24px);
+        max-height: min(70vh, 560px); overflow-y: auto;
         display: none;
       }
       .filters.mobile-open { display: block; }
+      body.mobile-filters-open .masthead,
+      body.mobile-filters-open .search-wrap,
+      body.mobile-filters-open .region-strip,
+      body.mobile-filters-open .timeline,
+      body.mobile-filters-open .footer { display: none !important; }
       .mobile-filter-toggle {
         display: flex !important;
-        position: fixed; left: 12px; bottom: 12px; z-index: 11;
+        position: fixed; left: 12px; bottom: 12px; z-index: 13;
         padding: 10px 14px; border-radius: 24px;
         background: var(--accent); color: #000;
         font-family: var(--sans); font-weight: 600; font-size: 11px;
@@ -1049,7 +1061,7 @@
   <div class="brand">
     <div class="eyebrow">FLOP Map</div>
     <h1>The World's AI Compute</h1>
-    <div class="tagline">Every named AI training cluster, live on a globe</div>
+    <div class="tagline">700+ publicly disclosed AI compute clusters, mapped</div>
   </div>
   <div class="counter">
     <span class="big" id="visibleCount" title="—">—</span>
@@ -1078,7 +1090,7 @@
 </div>
 
 <div class="left-rail">
-<aside class="filters">
+<aside class="filters" id="filterPanel">
   <h3>Filter</h3>
   <div class="filter-row">
     <label>Status</label>
@@ -1193,7 +1205,7 @@
   <span class="sep">·</span>
   <span>Data: <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener">Epoch AI · CC BY</a></span>
   <span class="sep">·</span>
-  <span id="dataStamp" title="Last data refresh">—</span>
+  <span id="dataStamp" title="Epoch AI snapshot downloaded 24 April 2026; FLOP Map additions reviewed 27 April 2026">Data snapshot · Apr 2026</span>
   <span class="sep">·</span>
   <a href="#" id="contextLink" style="color:var(--text-muted);text-decoration:none;">Context</a>
   <span class="sep">·</span>
@@ -1206,9 +1218,8 @@
   <div class="card" style="max-width:540px;">
     <h3>About FLOP Map</h3>
     <div style="font-size:13px;line-height:1.65;color:var(--text);margin-bottom:16px;">
-      A public, interactive 3D map of every known AI compute cluster on earth —
-      <span id="aboutClusterCount">700+</span> named sites tracked by <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>
-      plus FLOP Map's curated additions, covering <span id="aboutTotalGW">≈65 GW</span> of power and <span id="aboutTotalH100">≈80M</span> H100-equivalent chips. Built to make the
+      A public, interactive 3D map of more than <span id="aboutClusterCount">700</span> publicly disclosed AI compute clusters. The map combines a dated snapshot of <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>
+      with FLOP Map's curated additions, covering <span id="aboutTotalGW">≈65 GW</span> of reported or estimated capacity and <span id="aboutTotalH100">≈80M</span> H100-equivalent chips. Built to make the
       infrastructure behind the AI boom visible.
     </div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">How it works</div>
@@ -1231,17 +1242,17 @@
     </div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Data &amp; caveats</div>
     <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:16px;">
-      Source: <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>
-      (CC BY) plus 34 community-curated additions maintained by FLOP Map.
+      Source: a snapshot of <a href="https://epoch.ai/data/gpu-clusters" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Epoch AI's GPU Clusters dataset</a>
+      downloaded 24 April 2026 under CC BY, plus 34 FLOP Map additions reviewed through 27 April 2026. Epoch has since deprecated the base dataset, so this is a public data snapshot, not a continuously updated or complete census.
       253 anonymised Chinese clusters share one centroid (35.5°N, 101.9°E) —
       heatmap reads this correctly but the raw dot count is misleading. Many
       planned sites lack power or FLOP/s estimates. China is heavily
       under-covered; smaller US hyperscaler footprints aren't enumerated
-      individually. This is the best public dataset we have.
+      individually. Reported power capacity is not the same as measured current consumption.
     </div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.4em;text-transform:uppercase;margin:18px 0 8px;font-weight:600;">Embed</div>
     <div style="font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:8px;">
-      Drop this into any page to embed a live FLOP Map (chrome-hidden, attribution kept):
+      Drop this into any page to embed the interactive FLOP Map (chrome-hidden, attribution kept):
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
       <code id="embedCode" style="flex:1;font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:8px 10px;border-radius:6px;overflow-x:auto;white-space:nowrap;">&lt;iframe src="https://flopmap.com/?embed=1" width="100%" height="600" style="border:0;border-radius:10px;"&gt;&lt;/iframe&gt;</code>
@@ -1289,7 +1300,7 @@
 
 <a class="embed-badge" id="embedBadge" href="https://flopmap.com" target="_blank" rel="noopener">FLOP Map → open full</a>
 
-<button class="mobile-filter-toggle" id="mobileFilterToggle" aria-label="Toggle filters">Filters</button>
+<button class="mobile-filter-toggle" id="mobileFilterToggle" aria-label="Toggle filters" aria-controls="filterPanel" aria-expanded="false">Filters</button>
 
 <div class="kbd-overlay" id="kbdOverlay">
   <div class="card">
@@ -1337,21 +1348,6 @@ window.addEventListener('unhandledrejection', (e) => {
   statusEl.textContent = 'Fetching compute data…';
   const resp = await fetch('./gpu_clusters.csv');
   const csvText = await resp.text();
-  // Freshness stamp from the Last-Modified header
-  try {
-    const lm = resp.headers.get('Last-Modified');
-    if (lm) {
-      const d = new Date(lm);
-      if (!isNaN(d)) {
-        const stampEl = document.getElementById('dataStamp');
-        if (stampEl) {
-          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-          stampEl.textContent = `refreshed ${months[d.getMonth()]} ${d.getFullYear()}`;
-          stampEl.title = `Data file last modified ${d.toISOString().slice(0,10)}`;
-        }
-      }
-    }
-  } catch {}
 
   statusEl.textContent = 'Parsing…';
   const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true }).data;
@@ -3359,7 +3355,7 @@ window.addEventListener('unhandledrejection', (e) => {
     const h100Str = totalH100 >= 1e6 ? (totalH100 / 1e6).toFixed(1) + 'M' : totalH100 >= 1e3 ? (totalH100 / 1e3).toFixed(0) + 'k' : Math.round(totalH100);
     const isDefault = scope === 'global' && visible.length >= 600;
     const blurb = isDefault
-      ? `FLOP Map: a live 3D map of every named AI compute cluster on earth. ${powerStr} · ${h100Str} H100-equivalents · ${visible.length} sites. Public data, open source.`
+      ? `The cloud has an address. Explore ${visible.length} publicly disclosed AI compute clusters on FLOP Map. ${powerStr} · ${h100Str} H100-equivalents. Sources and uncertainty included.`
       : `FLOP Map (${scope}): ${visible.length} clusters · ${powerStr} · ${h100Str} H100-eq.`;
     const title = `FLOP Map — ${scope === 'global' ? 'the world\u2019s AI compute, mapped' : scope + ' AI compute'}`;
     return { url, blurb, title };
@@ -3491,7 +3487,9 @@ window.addEventListener('unhandledrejection', (e) => {
     const filtersEl = document.querySelector('.filters');
     mft.addEventListener('click', () => {
       const open = filtersEl.classList.toggle('mobile-open');
+      document.body.classList.toggle('mobile-filters-open', open);
       mft.textContent = open ? 'Close' : 'Filters';
+      mft.setAttribute('aria-expanded', String(open));
     });
   }
 
